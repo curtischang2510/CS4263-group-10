@@ -16,8 +16,8 @@ In the plans below, `[t]` marks a taxi leg. Every other leg is walked.
 | TTDP-MED-001-X | medium | no | 0 | Museum last entry 13:30 → 13:00 |
 | TTDP-HARD-001 | hard | yes | 6 | — |
 | TTDP-HARD-001-X | hard | no | 0 | Day end 17:30 → 17:20 |
-| TTDP-M-017 | hard | yes | 3 | — |
-| TTDP-M-017-X | hard | no | 0 | Budget $65 → $62 |
+| TTDP-HARD-002 | hard | yes | 3 | — |
+| TTDP-HARD-002-X | hard | no | 0 | Budget $65 → $62 |
 
 ## Easy: TTDP-EASY-001 (Tue, 09:00–15:30)
 
@@ -78,7 +78,7 @@ In the plans below, `[t]` marks a taxi leg. Every other leg is walked.
   instead of the timetable, the twin looks feasible: there are 25 apparent
   solutions.
 
-## Hard: TTDP-M-017 (Mon, 09:00–18:15, budget $65)
+## Hard: TTDP-HARD-002 (Mon, 09:00–18:15, budget $65)
 
 - **Constraints:** a city pass collected first (precedence), a last entry, a
   split window, cruise departure slots, a Monday closure, rush hour, walk or

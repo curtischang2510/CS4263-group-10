@@ -1,7 +1,0 @@
-{
-  "instance_id": "TTDP-M-017-X",
-  "twin_of": "TTDP-M-017",
-  "feasible": false,
-  "num_solutions": 0,
-  "design_intent": "Identical to M-017 except budget $62. Cafe plan costs $63; hawker plan needs a taxi ($65); hawker plan on foot gets home 18:23 > 18:15. Every constraint looks satisfiable on its own - only the combination fails."
-}

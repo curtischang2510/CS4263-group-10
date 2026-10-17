@@ -246,8 +246,8 @@ justification in `reason`.
 | `TTDP-MED-001-X` | medium | **no** | 0 | Museum last entry moves from 13:30 to 13:00. Relaxing any one of five constraints makes it feasible again: the closure, either arrival buffer, the Fort's split window, or the ferry timetable. |
 | `TTDP-HARD-001` | hard | yes | 6 | Two strategies (cafe and walk for $44, or hawker plus taxi for $46). The afternoon is forced: meeting at 15:00, then a rush-hour walk home arriving 17:23. |
 | `TTDP-HARD-001-X` | hard | **no** | 0 | The day ends at 17:20 instead of 17:30. Ignoring the friend's distractor text makes it look feasible. |
-| `TTDP-M-017` | hard | yes | 3 | The budget of $65 is met exactly by one of the two strategies. |
-| `TTDP-M-017-X` | hard | **no** | 0 | Identical to M-017 except the budget is $62. Every constraint passes on its own, and only the combination fails. |
+| `TTDP-HARD-002` | hard | yes | 3 | The budget of $65 is met exactly by one of the two strategies. |
+| `TTDP-HARD-002-X` | hard | **no** | 0 | Identical to HARD-002 except the budget is $62. Every constraint passes on its own, and only the combination fails. |
 
 ---
 
@@ -258,13 +258,13 @@ justification in `reason`.
 Validate an instance and enumerate its ground-truth solutions:
 
 ```bash
-python ttdp_tool.py analyse TTDP-M-017.instance.json
+python ttdp_tool.py analyse TTDP-HARD-002.instance.json
 ```
 
 Check a solver's or LLM's output against an instance:
 
 ```bash
-python ttdp_tool.py check TTDP-M-017.instance.json example_output.json
+python ttdp_tool.py check TTDP-HARD-002.instance.json example_output.json
 ```
 
 The `check` command prints `VALID` or a list of violations. Each violation code

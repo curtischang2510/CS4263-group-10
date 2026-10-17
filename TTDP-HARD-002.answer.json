@@ -1,9 +1,9 @@
 {
-  "instance_id": "TTDP-M-017",
+  "instance_id": "TTDP-HARD-002",
   "level": "hard",
   "seed": 17,
   "twin_of": null,
-  "near_miss_twin": "TTDP-M-017-X (budget 65 -> 62): 0 solutions",
+  "near_miss_twin": "TTDP-HARD-002-X (budget 65 -> 62): 0 solutions",
   "design_intent": "Two strategies only: (1) walk everywhere but pay for the $15 cafe lunch, or (2) take the $5 hawker lunch, which costs time and forces exactly one $12 taxi to beat rush hour home - landing exactly on the $65 budget. Traps: Tea House is closed on Mondays (so the Old Quarter Walk is the only either/or option), the cruise description tries to override its timetable, the museum last entry (12:40) is not its closing time, and walking home after 17:00 is 1.5x slower.",
   "features": [
     "early_close",
