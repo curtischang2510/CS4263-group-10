@@ -49,9 +49,14 @@ All times are whole minutes, written as `HH:MM` in the instance files.
 
 The planner must produce:
 
-1. An **ordered sequence** of distinct POIs, *π = (π₁, π₂, …, πₖ)*, with each *πⱼ ∈ P*.
-2. A **start time** *sᵢ* for every POI *i* in the sequence. A visit to *i*
-   occupies the interval *[sᵢ, sᵢ + dᵢ]*.
+1. An **ordered sequence** *π* of distinct POIs from *P*. We write *i → j*
+   when POI *j* comes immediately after POI *i* in *π*.
+2. A **start time** *sᵢ* for every POI *i* in *π*. A visit to *i* occupies the
+   interval *[sᵢ, sᵢ + dᵢ]*.
+
+Every quantity (*oᵢ, cᵢ, dᵢ, sᵢ*) is indexed by the POI *i* itself, never by
+its position in the sequence. The sequence matters only through the relation
+*i → j*.
 
 ### 2.3 Hard constraints
 
@@ -59,9 +64,9 @@ A plan is feasible **if and only if** it satisfies all of the following:
 
 | ID | Constraint | Formal statement |
 |---|---|---|
-| **C1** | **Opening hours.** Every visit starts and ends within the POI's opening hours. | *oᵢ ≤ sᵢ* and *sᵢ + dᵢ ≤ cᵢ*, for every visited *i* |
-| **C2** | **Travel time.** Consecutive visits leave enough time to travel between them. | *sπⱼ + dπⱼ + tπⱼπⱼ₊₁ ≤ sπⱼ₊₁*, for *j = 1, …, k−1* |
-| **C3** | **Day window.** The whole itinerary fits within the day. | *S ≤ sπ₁* and *sπₖ + dπₖ ≤ E* |
+| **C1** | **Opening hours.** Every visit starts and ends within the POI's opening hours. | *oᵢ ≤ sᵢ* and *sᵢ + dᵢ ≤ cᵢ*, for every *i ∈ π* |
+| **C2** | **Travel time.** Consecutive visits leave enough time to travel between them. | *sᵢ + dᵢ + tᵢⱼ ≤ sⱼ*, for every consecutive pair *i → j* in *π* |
+| **C3** | **Day window.** The whole itinerary fits within the day. | *S ≤ sᵢ* and *sᵢ + dᵢ ≤ E*, for every *i ∈ π* |
 | **C4** | **Must-visit.** Every must-visit POI is visited exactly once. | every *i ∈ M* appears in *π* exactly once |
 
 Notes on these constraints:
@@ -70,8 +75,10 @@ Notes on these constraints:
   That is why C2 is an inequality.
 - An optional POI (one in *P \ M*) may be visited at most once, or skipped.
 - When an instance gives a start location *h* and asks you to return to it,
-  C3 includes the legs from and back to *h*:
-  *S + tₕπ₁ ≤ sπ₁* and *sπₖ + dπₖ + tπₖₕ ≤ E*.
+  C3 includes the legs from and back to *h*. If *i* is the first POI in *π*
+  and *j* is the last, then *S + tₕᵢ ≤ sᵢ* and *sⱼ + dⱼ + tⱼₕ ≤ E*.
+- Because of C2, start times increase along *π*. So C3 only has to be
+  checked at the first and last POI, even though it is stated for every POI.
 
 ### 2.4 Problem class
 
