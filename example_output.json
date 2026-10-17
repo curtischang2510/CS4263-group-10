@@ -1,0 +1,55 @@
+{
+  "feasible": true,
+  "itinerary": [
+    {
+      "poi": "V",
+      "mode": "walk",
+      "start": "09:05",
+      "end": "09:20"
+    },
+    {
+      "poi": "B",
+      "mode": "walk",
+      "start": "09:45",
+      "end": "10:30"
+    },
+    {
+      "poi": "A",
+      "mode": "walk",
+      "start": "10:55",
+      "end": "12:25"
+    },
+    {
+      "poi": "L2",
+      "mode": "walk",
+      "start": "12:35",
+      "end": "13:20"
+    },
+    {
+      "poi": "D",
+      "mode": "walk",
+      "start": "13:30",
+      "end": "14:30"
+    },
+    {
+      "poi": "C",
+      "mode": "walk",
+      "start": "14:50",
+      "end": "15:35"
+    },
+    {
+      "poi": "G",
+      "mode": "walk",
+      "start": "16:00",
+      "end": "16:45"
+    },
+    {
+      "poi": "E",
+      "mode": "walk",
+      "start": "17:15",
+      "end": "17:45"
+    }
+  ],
+  "return_mode": "walk",
+  "reason": ""
+}
