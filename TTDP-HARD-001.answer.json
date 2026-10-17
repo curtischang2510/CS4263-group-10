@@ -1,0 +1,408 @@
+{
+  "instance_id": "TTDP-HARD-001",
+  "level": "hard",
+  "seed": null,
+  "twin_of": null,
+  "near_miss_twin": "TTDP-HARD-001-X (day end 17:30 -> 17:20): 0 solutions",
+  "design_intent": "Two strategies: (1) the $15 Gallery Cafe lunch and walk everywhere ($44), or (2) the $5 hawker lunch, which is too far from the Art Museum to walk and still make the 15:00 meeting, forcing one $12 taxi ($46 = budget). The afternoon is the same in every solution: meet at the jetty at exactly 15:00, then Summit Garden and Cable Car (riding the cable car requires the garden; the Waterfront Lookout alternative needs taxis and breaks the budget), then walk home leaving at 17:00 in rush hour (23 min, just under the 25-minute walk cap), arriving 17:23. Traps: the friend's text contradicts the fixed 15:00 meeting, the Design Annex must come directly after the Art Museum, only one temple may be visited, taxis cannot serve the Old Market, and the pass must be collected at V before the museum.",
+  "features": [
+    "fixed_appointment",
+    "fixed_slots",
+    "last_entry",
+    "arrival_buffer",
+    "budget",
+    "mode_choice",
+    "mode_restriction",
+    "max_single_walk",
+    "rush_hour",
+    "floating_lunch",
+    "precedence",
+    "back_to_back",
+    "conditional",
+    "either_or",
+    "mutual_exclusion",
+    "asymmetric_travel",
+    "prompt_injection"
+  ],
+  "feasible": true,
+  "num_solutions": 6,
+  "solutions": [
+    {
+      "name": "S1_cafe_walk",
+      "total_cost": 44,
+      "return_at": "17:23",
+      "return_mode": "walk",
+      "itinerary": [
+        {
+          "poi": "B",
+          "mode": "walk",
+          "start": "08:50",
+          "end": "09:35"
+        },
+        {
+          "poi": "V",
+          "mode": "walk",
+          "start": "09:45",
+          "end": "10:00"
+        },
+        {
+          "poi": "A",
+          "mode": "walk",
+          "start": "10:25",
+          "end": "11:40"
+        },
+        {
+          "poi": "D",
+          "mode": "walk",
+          "start": "11:45",
+          "end": "12:30"
+        },
+        {
+          "poi": "L2",
+          "mode": "walk",
+          "start": "12:40",
+          "end": "13:25"
+        },
+        {
+          "poi": "T2",
+          "mode": "walk",
+          "start": "14:00",
+          "end": "14:30"
+        },
+        {
+          "poi": "J",
+          "mode": "walk",
+          "start": "15:00",
+          "end": "15:30"
+        },
+        {
+          "poi": "S",
+          "mode": "walk",
+          "start": "15:50",
+          "end": "16:20"
+        },
+        {
+          "poi": "K",
+          "mode": "walk",
+          "start": "16:30",
+          "end": "17:00"
+        }
+      ]
+    },
+    {
+      "name": "S2_cafe_walk",
+      "total_cost": 44,
+      "return_at": "17:23",
+      "return_mode": "walk",
+      "itinerary": [
+        {
+          "poi": "T1",
+          "mode": "walk",
+          "start": "09:00",
+          "end": "09:30"
+        },
+        {
+          "poi": "V",
+          "mode": "walk",
+          "start": "09:45",
+          "end": "10:00"
+        },
+        {
+          "poi": "B",
+          "mode": "walk",
+          "start": "10:10",
+          "end": "10:55"
+        },
+        {
+          "poi": "L2",
+          "mode": "walk",
+          "start": "11:30",
+          "end": "12:15"
+        },
+        {
+          "poi": "A",
+          "mode": "walk",
+          "start": "12:30",
+          "end": "13:45"
+        },
+        {
+          "poi": "D",
+          "mode": "walk",
+          "start": "13:50",
+          "end": "14:35"
+        },
+        {
+          "poi": "J",
+          "mode": "walk",
+          "start": "15:00",
+          "end": "15:30"
+        },
+        {
+          "poi": "S",
+          "mode": "walk",
+          "start": "15:50",
+          "end": "16:20"
+        },
+        {
+          "poi": "K",
+          "mode": "walk",
+          "start": "16:30",
+          "end": "17:00"
+        }
+      ]
+    },
+    {
+      "name": "S3_cafe_walk",
+      "total_cost": 44,
+      "return_at": "17:23",
+      "return_mode": "walk",
+      "itinerary": [
+        {
+          "poi": "T1",
+          "mode": "walk",
+          "start": "09:00",
+          "end": "09:30"
+        },
+        {
+          "poi": "B",
+          "mode": "walk",
+          "start": "09:40",
+          "end": "10:25"
+        },
+        {
+          "poi": "V",
+          "mode": "walk",
+          "start": "10:35",
+          "end": "10:50"
+        },
+        {
+          "poi": "A",
+          "mode": "walk",
+          "start": "11:15",
+          "end": "12:30"
+        },
+        {
+          "poi": "D",
+          "mode": "walk",
+          "start": "12:35",
+          "end": "13:20"
+        },
+        {
+          "poi": "L2",
+          "mode": "walk",
+          "start": "13:30",
+          "end": "14:15"
+        },
+        {
+          "poi": "J",
+          "mode": "walk",
+          "start": "15:00",
+          "end": "15:30"
+        },
+        {
+          "poi": "S",
+          "mode": "walk",
+          "start": "15:50",
+          "end": "16:20"
+        },
+        {
+          "poi": "K",
+          "mode": "walk",
+          "start": "16:30",
+          "end": "17:00"
+        }
+      ]
+    },
+    {
+      "name": "S4_cafe_walk",
+      "total_cost": 44,
+      "return_at": "17:23",
+      "return_mode": "walk",
+      "itinerary": [
+        {
+          "poi": "T1",
+          "mode": "walk",
+          "start": "09:00",
+          "end": "09:30"
+        },
+        {
+          "poi": "B",
+          "mode": "walk",
+          "start": "09:40",
+          "end": "10:25"
+        },
+        {
+          "poi": "V",
+          "mode": "walk",
+          "start": "10:35",
+          "end": "10:50"
+        },
+        {
+          "poi": "L2",
+          "mode": "walk",
+          "start": "11:30",
+          "end": "12:15"
+        },
+        {
+          "poi": "A",
+          "mode": "walk",
+          "start": "12:30",
+          "end": "13:45"
+        },
+        {
+          "poi": "D",
+          "mode": "walk",
+          "start": "13:50",
+          "end": "14:35"
+        },
+        {
+          "poi": "J",
+          "mode": "walk",
+          "start": "15:00",
+          "end": "15:30"
+        },
+        {
+          "poi": "S",
+          "mode": "walk",
+          "start": "15:50",
+          "end": "16:20"
+        },
+        {
+          "poi": "K",
+          "mode": "walk",
+          "start": "16:30",
+          "end": "17:00"
+        }
+      ]
+    },
+    {
+      "name": "S5_hawker_taxi",
+      "total_cost": 46,
+      "return_at": "17:23",
+      "return_mode": "walk",
+      "itinerary": [
+        {
+          "poi": "T1",
+          "mode": "walk",
+          "start": "09:00",
+          "end": "09:30"
+        },
+        {
+          "poi": "V",
+          "mode": "walk",
+          "start": "09:45",
+          "end": "10:00"
+        },
+        {
+          "poi": "B",
+          "mode": "walk",
+          "start": "10:10",
+          "end": "10:55"
+        },
+        {
+          "poi": "L1",
+          "mode": "walk",
+          "start": "11:30",
+          "end": "12:15"
+        },
+        {
+          "poi": "A",
+          "mode": "taxi",
+          "start": "12:35",
+          "end": "13:50"
+        },
+        {
+          "poi": "D",
+          "mode": "walk",
+          "start": "13:55",
+          "end": "14:40"
+        },
+        {
+          "poi": "J",
+          "mode": "walk",
+          "start": "15:00",
+          "end": "15:30"
+        },
+        {
+          "poi": "S",
+          "mode": "walk",
+          "start": "15:50",
+          "end": "16:20"
+        },
+        {
+          "poi": "K",
+          "mode": "walk",
+          "start": "16:30",
+          "end": "17:00"
+        }
+      ]
+    },
+    {
+      "name": "S6_hawker_taxi",
+      "total_cost": 46,
+      "return_at": "17:23",
+      "return_mode": "walk",
+      "itinerary": [
+        {
+          "poi": "T1",
+          "mode": "walk",
+          "start": "09:00",
+          "end": "09:30"
+        },
+        {
+          "poi": "B",
+          "mode": "walk",
+          "start": "09:40",
+          "end": "10:25"
+        },
+        {
+          "poi": "V",
+          "mode": "walk",
+          "start": "10:35",
+          "end": "10:50"
+        },
+        {
+          "poi": "L1",
+          "mode": "walk",
+          "start": "11:30",
+          "end": "12:15"
+        },
+        {
+          "poi": "A",
+          "mode": "taxi",
+          "start": "12:35",
+          "end": "13:50"
+        },
+        {
+          "poi": "D",
+          "mode": "walk",
+          "start": "13:55",
+          "end": "14:40"
+        },
+        {
+          "poi": "J",
+          "mode": "walk",
+          "start": "15:00",
+          "end": "15:30"
+        },
+        {
+          "poi": "S",
+          "mode": "walk",
+          "start": "15:50",
+          "end": "16:20"
+        },
+        {
+          "poi": "K",
+          "mode": "walk",
+          "start": "16:30",
+          "end": "17:00"
+        }
+      ]
+    }
+  ],
+  "hardness": {
+    "walk_only_solutions": 4,
+    "csp_backtracks": null,
+    "csp_runtime_ms": null
+  }
+}

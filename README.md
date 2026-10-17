@@ -165,9 +165,13 @@ We also measure:
 - **Feasible and infeasible cases.** Every difficulty level includes instances
   that are infeasible on purpose.
 - **Near-miss twins.** An infeasible twin (suffix `-X`) is its feasible
-  partner with one parameter tightened. Each constraint still looks
-  satisfiable on its own, and only their combination fails. This tests whether
-  a planner can detect infeasibility, rather than just failing to find a plan.
+  partner with exactly one parameter tightened. This tests whether a planner
+  can detect infeasibility, rather than just failing to find a plan. How hard
+  the infeasibility is to prove grows with the level:
+  - **Easy twin:** a single constraint, checked on its own, already fails.
+  - **Medium and hard twins:** each constraint still looks satisfiable on its
+    own, and only their combination fails. Relaxing any one of several binding
+    constraints makes the instance feasible again.
 - **Distractors.** Free-text `description` fields are for information only and
   never bind. Some instances include text in them that contradicts the
   structured data, such as "the timetable can be ignored". A correct planner
@@ -178,8 +182,8 @@ We also measure:
 | Level | Constraints used | Typical characteristics |
 |---|---|---|
 | **Easy** | C1–C4 only | A few POIs, one opening window each, slack in the schedule, many solutions. |
-| **Medium** | C1–C4 plus some calendar extensions | Split windows, last-entry times, closed days, fixed departure slots; fewer solutions. |
-| **Hard** | C1–C4 plus several interacting extensions | Budget, choice of travel mode, rush-hour travel, a lunch window, precedence, either/or groups, distractor text; only a handful of solutions, or none. |
+| **Medium** | C1–C4 plus some calendar extensions | Split windows, last-entry times, temporary closures, closed days, fixed departure slots, arrival buffers, asymmetric travel; fewer solutions. |
+| **Hard** | C1–C4 plus several interacting extensions | Budget, choice of travel mode, places some modes cannot reach, walking caps, rush-hour travel, a lunch window, a fixed appointment, precedence, back-to-back, conditional, either/or and mutual-exclusion rules, distractor text; only a handful of solutions, or none. |
 
 ### 4.3 Constraint extensions used in harder instances
 
@@ -191,14 +195,22 @@ uses.
 |---|---|
 | `opening_windows` (more than one) | The visit must fit entirely inside **one** window (refines C1). |
 | `last_entry` | *sᵢ ≤ last_entry* (refines C1). |
-| `fixed_start_times` | *sᵢ* must be one of the listed times (refines C1). |
+| `fixed_start_times` | *sᵢ* must be one of the listed times (refines C1). A single listed time models a fixed appointment. |
+| `closures` | A one-off gap in the opening hours: the visit may not overlap any listed interval (refines C1). |
+| `arrival_buffer` | Security or ticketing time at that POI: *sᵢ ≥ arrival + buffer* (refines C2). |
 | `closed_days` | The POI cannot be visited on the instance's `weekday`. |
 | `start_location`, `return_to_start` | The day starts at *h* and must end back at *h* by *E* (refines C3). |
 | `travel_modes` | Each leg picks a mode. Travel time is ⌈*tᵢⱼ* × `time_factor`⌉, and each leg adds `cost_per_leg`. |
 | `time_dependent_travel` | A leg that departs inside the given interval has its travel time multiplied by `multiplier`. |
+| `no_modes` | A leg into or out of that POI may not use any of the listed modes. |
+| `max_single_walk` | No single walking leg, including the return leg, may take longer than this many minutes. |
+| `max_walk_total` | Total walking minutes over the day, including the return leg, may not exceed this. |
 | `budget` | Entry fees plus transport costs, including the return leg, must be ≤ budget. |
 | `precedence` [a, b] | If *b* is visited, *a* must be visited earlier. |
+| `immediately_after` [a, b] | If *b* is visited, the stop directly before it must be *a*. |
+| `if_then` [a, b] | If *a* is visited, *b* must also be visited. |
 | `at_least_one_of` | Each group must contain at least one visited POI. |
+| `at_most_one_of` | Each group may contain at most one visited POI. |
 | `lunch` | Exactly one lunch candidate is visited, and it starts within `start_between`. |
 
 ### 4.4 File layout and naming
@@ -228,6 +240,12 @@ justification in `reason`.
 
 | ID | Level | Feasible | Solutions | Notes |
 |---|---|---|---|---|
+| `TTDP-EASY-001` | easy | yes | 26 | Core constraints C1–C4 only. Walk-only, single windows, plenty of slack. |
+| `TTDP-EASY-001-X` | easy | **no** | 0 | The Flower Market closes at 09:55, but the earliest a visit there can end is 10:00. |
+| `TTDP-MED-001` | medium | yes | 3 | Last entry, a gallery closure, ferry slots, arrival buffers, the Fort's split window, uphill travel, and a closed-day trap. |
+| `TTDP-MED-001-X` | medium | **no** | 0 | Museum last entry moves from 13:30 to 13:00. Relaxing any one of five constraints makes it feasible again: the closure, either arrival buffer, the Fort's split window, or the ferry timetable. |
+| `TTDP-HARD-001` | hard | yes | 6 | Two strategies (cafe and walk for $44, or hawker plus taxi for $46). The afternoon is forced: meeting at 15:00, then a rush-hour walk home arriving 17:23. |
+| `TTDP-HARD-001-X` | hard | **no** | 0 | The day ends at 17:20 instead of 17:30. Ignoring the friend's distractor text makes it look feasible. |
 | `TTDP-M-017` | hard | yes | 3 | The budget of $65 is met exactly by one of the two strategies. |
 | `TTDP-M-017-X` | hard | **no** | 0 | Identical to M-017 except the budget is $62. Every constraint passes on its own, and only the combination fails. |
 

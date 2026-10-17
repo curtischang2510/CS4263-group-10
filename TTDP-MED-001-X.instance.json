@@ -1,0 +1,208 @@
+{
+  "schema_version": "2.1",
+  "instance_id": "TTDP-MED-001-X",
+  "date": "2026-11-09",
+  "weekday": "Mon",
+  "day_window": {
+    "start": "09:00",
+    "end": "17:30"
+  },
+  "start_location": "H",
+  "return_to_start": true,
+  "allow_waiting": true,
+  "at_least_one_of": [
+    [
+      "E",
+      "F"
+    ]
+  ],
+  "pois": [
+    {
+      "id": "A",
+      "name": "Maritime Museum",
+      "opening_windows": [
+        [
+          "09:30",
+          "17:00"
+        ]
+      ],
+      "visit_duration": 75,
+      "must_visit": true,
+      "entry_fee": 0,
+      "last_entry": "13:00",
+      "arrival_buffer": 10,
+      "closures": [
+        [
+          "12:00",
+          "13:00"
+        ]
+      ],
+      "description": "The main gallery is closed 12:00-13:00 for a private event (see closures)."
+    },
+    {
+      "id": "B",
+      "name": "Fish Market",
+      "opening_windows": [
+        [
+          "07:00",
+          "10:30"
+        ]
+      ],
+      "visit_duration": 45,
+      "must_visit": true,
+      "entry_fee": 0
+    },
+    {
+      "id": "C",
+      "name": "Hilltop Fort",
+      "opening_windows": [
+        [
+          "09:00",
+          "11:30"
+        ],
+        [
+          "14:00",
+          "17:00"
+        ]
+      ],
+      "visit_duration": 60,
+      "must_visit": true,
+      "entry_fee": 0
+    },
+    {
+      "id": "D",
+      "name": "Harbour Ferry Tour",
+      "opening_windows": [
+        [
+          "11:00",
+          "17:00"
+        ]
+      ],
+      "visit_duration": 45,
+      "must_visit": true,
+      "entry_fee": 0,
+      "fixed_start_times": [
+        "11:00",
+        "13:30",
+        "15:30"
+      ],
+      "arrival_buffer": 10
+    },
+    {
+      "id": "E",
+      "name": "Silk Museum",
+      "opening_windows": [
+        [
+          "10:00",
+          "17:00"
+        ]
+      ],
+      "visit_duration": 60,
+      "must_visit": false,
+      "entry_fee": 0,
+      "closed_days": [
+        "Mon"
+      ]
+    },
+    {
+      "id": "F",
+      "name": "Old Town Square",
+      "opening_windows": [
+        [
+          "09:00",
+          "20:00"
+        ]
+      ],
+      "visit_duration": 30,
+      "must_visit": false,
+      "entry_fee": 0
+    },
+    {
+      "id": "G",
+      "name": "Lantern Temple",
+      "opening_windows": [
+        [
+          "10:00",
+          "16:00"
+        ]
+      ],
+      "visit_duration": 45,
+      "must_visit": true,
+      "entry_fee": 0
+    }
+  ],
+  "travel_times": {
+    "H": {
+      "A": 10,
+      "B": 15,
+      "C": 35,
+      "D": 15,
+      "E": 15,
+      "F": 10,
+      "G": 15
+    },
+    "A": {
+      "H": 10,
+      "B": 25,
+      "C": 25,
+      "D": 15,
+      "E": 25,
+      "F": 15,
+      "G": 25
+    },
+    "B": {
+      "H": 15,
+      "A": 25,
+      "C": 30,
+      "D": 30,
+      "E": 20,
+      "F": 10,
+      "G": 15
+    },
+    "C": {
+      "H": 20,
+      "A": 10,
+      "B": 15,
+      "D": 25,
+      "E": 30,
+      "F": 10,
+      "G": 25
+    },
+    "D": {
+      "H": 15,
+      "A": 15,
+      "B": 30,
+      "C": 40,
+      "E": 20,
+      "F": 20,
+      "G": 25
+    },
+    "E": {
+      "H": 15,
+      "A": 25,
+      "B": 20,
+      "C": 45,
+      "D": 20,
+      "F": 20,
+      "G": 10
+    },
+    "F": {
+      "H": 10,
+      "A": 15,
+      "B": 10,
+      "C": 25,
+      "D": 20,
+      "E": 20,
+      "G": 15
+    },
+    "G": {
+      "H": 15,
+      "A": 25,
+      "B": 15,
+      "C": 40,
+      "D": 25,
+      "E": 10,
+      "F": 15
+    }
+  }
+}

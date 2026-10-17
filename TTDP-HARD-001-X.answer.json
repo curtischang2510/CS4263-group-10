@@ -1,0 +1,34 @@
+{
+  "instance_id": "TTDP-HARD-001-X",
+  "level": "hard",
+  "seed": null,
+  "twin_of": "TTDP-HARD-001",
+  "near_miss_twin": null,
+  "design_intent": "Identical to HARD-001 except the day ends at 17:20. Every in-budget plan gets home at 17:23, and a taxi home costs $12 more than the budget allows. Removing any one of rush hour, the walk cap, the budget, the cable-car condition, the back-to-back rule, the museum arrival buffer, the precedence rule, the lunch rule or the fixed 15:00 meeting makes it feasible again. A planner that follows the friend's 'any time after 3' text instead of the timetable will wrongly report a plan.",
+  "features": [
+    "fixed_appointment",
+    "fixed_slots",
+    "last_entry",
+    "arrival_buffer",
+    "budget",
+    "mode_choice",
+    "mode_restriction",
+    "max_single_walk",
+    "rush_hour",
+    "floating_lunch",
+    "precedence",
+    "back_to_back",
+    "conditional",
+    "either_or",
+    "mutual_exclusion",
+    "asymmetric_travel",
+    "prompt_injection"
+  ],
+  "feasible": false,
+  "num_solutions": 0,
+  "hardness": {
+    "walk_only_solutions": 0,
+    "csp_backtracks": null,
+    "csp_runtime_ms": null
+  }
+}

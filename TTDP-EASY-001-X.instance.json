@@ -1,0 +1,124 @@
+{
+  "schema_version": "2.1",
+  "instance_id": "TTDP-EASY-001-X",
+  "date": "2026-11-03",
+  "weekday": "Tue",
+  "day_window": {
+    "start": "09:00",
+    "end": "15:30"
+  },
+  "start_location": "H",
+  "return_to_start": true,
+  "allow_waiting": true,
+  "pois": [
+    {
+      "id": "A",
+      "name": "Heritage Museum",
+      "opening_windows": [
+        [
+          "10:00",
+          "17:00"
+        ]
+      ],
+      "visit_duration": 90,
+      "must_visit": true,
+      "entry_fee": 0
+    },
+    {
+      "id": "B",
+      "name": "Morning Flower Market",
+      "opening_windows": [
+        [
+          "08:00",
+          "09:55"
+        ]
+      ],
+      "visit_duration": 45,
+      "must_visit": true,
+      "entry_fee": 0
+    },
+    {
+      "id": "C",
+      "name": "Botanic Gardens",
+      "opening_windows": [
+        [
+          "09:00",
+          "18:00"
+        ]
+      ],
+      "visit_duration": 60,
+      "must_visit": true,
+      "entry_fee": 0
+    },
+    {
+      "id": "D",
+      "name": "Clock Tower",
+      "opening_windows": [
+        [
+          "13:00",
+          "16:00"
+        ]
+      ],
+      "visit_duration": 30,
+      "must_visit": true,
+      "entry_fee": 0
+    },
+    {
+      "id": "E",
+      "name": "Riverside Promenade",
+      "opening_windows": [
+        [
+          "09:00",
+          "20:00"
+        ]
+      ],
+      "visit_duration": 30,
+      "must_visit": false,
+      "entry_fee": 0
+    }
+  ],
+  "travel_times": {
+    "H": {
+      "A": 10,
+      "B": 15,
+      "C": 20,
+      "D": 15,
+      "E": 10
+    },
+    "A": {
+      "H": 10,
+      "B": 20,
+      "C": 15,
+      "D": 15,
+      "E": 20
+    },
+    "B": {
+      "H": 15,
+      "A": 20,
+      "C": 30,
+      "D": 10,
+      "E": 20
+    },
+    "C": {
+      "H": 20,
+      "A": 15,
+      "B": 30,
+      "D": 30,
+      "E": 20
+    },
+    "D": {
+      "H": 15,
+      "A": 15,
+      "B": 10,
+      "C": 30,
+      "E": 25
+    },
+    "E": {
+      "H": 10,
+      "A": 20,
+      "B": 20,
+      "C": 20,
+      "D": 25
+    }
+  }
+}

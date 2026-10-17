@@ -1,0 +1,436 @@
+{
+  "schema_version": "2.1",
+  "instance_id": "TTDP-HARD-001-X",
+  "date": "2026-11-14",
+  "weekday": "Sat",
+  "day_window": {
+    "start": "08:30",
+    "end": "17:20"
+  },
+  "start_location": "H",
+  "return_to_start": true,
+  "allow_waiting": true,
+  "budget": 46,
+  "max_single_walk": 25,
+  "precedence": [
+    [
+      "V",
+      "A"
+    ]
+  ],
+  "immediately_after": [
+    [
+      "A",
+      "D"
+    ]
+  ],
+  "at_least_one_of": [
+    [
+      "T1",
+      "T2"
+    ],
+    [
+      "K",
+      "W"
+    ]
+  ],
+  "at_most_one_of": [
+    [
+      "T1",
+      "T2"
+    ]
+  ],
+  "if_then": [
+    [
+      "K",
+      "S"
+    ]
+  ],
+  "lunch": {
+    "candidates": [
+      "L1",
+      "L2"
+    ],
+    "start_between": [
+      "11:30",
+      "13:30"
+    ]
+  },
+  "pois": [
+    {
+      "id": "V",
+      "name": "Visitor Centre",
+      "opening_windows": [
+        [
+          "09:30",
+          "17:00"
+        ]
+      ],
+      "visit_duration": 15,
+      "must_visit": true,
+      "entry_fee": 0,
+      "description": "Collect the museum pass here; the Art Museum will not admit you without it."
+    },
+    {
+      "id": "B",
+      "name": "Old Market",
+      "opening_windows": [
+        [
+          "08:00",
+          "11:30"
+        ]
+      ],
+      "visit_duration": 45,
+      "must_visit": true,
+      "entry_fee": 0,
+      "no_modes": [
+        "taxi"
+      ],
+      "description": "Pedestrian zone: taxis cannot drop off or pick up here."
+    },
+    {
+      "id": "A",
+      "name": "Art Museum",
+      "opening_windows": [
+        [
+          "10:00",
+          "17:00"
+        ]
+      ],
+      "visit_duration": 75,
+      "must_visit": true,
+      "entry_fee": 12,
+      "last_entry": "14:00",
+      "arrival_buffer": 10
+    },
+    {
+      "id": "D",
+      "name": "Design Annex",
+      "opening_windows": [
+        [
+          "10:00",
+          "17:00"
+        ]
+      ],
+      "visit_duration": 45,
+      "must_visit": true,
+      "entry_fee": 0,
+      "description": "Combo ticket with the Art Museum: valid only if you come here straight from the museum."
+    },
+    {
+      "id": "J",
+      "name": "Ferry Jetty (meet friend)",
+      "opening_windows": [
+        [
+          "14:00",
+          "17:00"
+        ]
+      ],
+      "visit_duration": 30,
+      "must_visit": true,
+      "entry_fee": 0,
+      "fixed_start_times": [
+        "15:00"
+      ],
+      "description": "Your friend texted: 'any time after 3 is fine, I'll wait as long as you need'."
+    },
+    {
+      "id": "T1",
+      "name": "Jade Temple",
+      "opening_windows": [
+        [
+          "09:00",
+          "10:00"
+        ]
+      ],
+      "visit_duration": 30,
+      "must_visit": false,
+      "entry_fee": 5
+    },
+    {
+      "id": "T2",
+      "name": "Pearl Temple",
+      "opening_windows": [
+        [
+          "14:00",
+          "18:00"
+        ]
+      ],
+      "visit_duration": 30,
+      "must_visit": false,
+      "entry_fee": 5
+    },
+    {
+      "id": "K",
+      "name": "Cable Car",
+      "opening_windows": [
+        [
+          "09:00",
+          "18:00"
+        ]
+      ],
+      "visit_duration": 30,
+      "must_visit": false,
+      "entry_fee": 8
+    },
+    {
+      "id": "S",
+      "name": "Summit Garden",
+      "opening_windows": [
+        [
+          "10:00",
+          "17:00"
+        ]
+      ],
+      "visit_duration": 30,
+      "must_visit": false,
+      "entry_fee": 4
+    },
+    {
+      "id": "W",
+      "name": "Waterfront Lookout",
+      "opening_windows": [
+        [
+          "09:00",
+          "19:00"
+        ]
+      ],
+      "visit_duration": 30,
+      "must_visit": false,
+      "entry_fee": 0
+    },
+    {
+      "id": "L1",
+      "name": "Market Hawker Stalls",
+      "opening_windows": [
+        [
+          "10:00",
+          "21:00"
+        ]
+      ],
+      "visit_duration": 45,
+      "must_visit": false,
+      "entry_fee": 5,
+      "tags": [
+        "food"
+      ]
+    },
+    {
+      "id": "L2",
+      "name": "Gallery Cafe",
+      "opening_windows": [
+        [
+          "11:00",
+          "16:00"
+        ]
+      ],
+      "visit_duration": 45,
+      "must_visit": false,
+      "entry_fee": 15,
+      "tags": [
+        "food"
+      ]
+    }
+  ],
+  "travel_modes": {
+    "walk": {
+      "time_factor": 1.0,
+      "cost_per_leg": 0
+    },
+    "taxi": {
+      "time_factor": 0.4,
+      "cost_per_leg": 12
+    }
+  },
+  "time_dependent_travel": [
+    {
+      "depart_from": "17:00",
+      "depart_to": "19:00",
+      "multiplier": 1.5
+    }
+  ],
+  "travel_times": {
+    "H": {
+      "V": 5,
+      "B": 20,
+      "A": 15,
+      "D": 15,
+      "J": 25,
+      "T1": 20,
+      "T2": 25,
+      "K": 15,
+      "S": 25,
+      "W": 35,
+      "L1": 20,
+      "L2": 15
+    },
+    "V": {
+      "H": 5,
+      "B": 10,
+      "A": 15,
+      "D": 20,
+      "J": 30,
+      "T1": 15,
+      "T2": 30,
+      "K": 20,
+      "S": 30,
+      "W": 35,
+      "L1": 15,
+      "L2": 15
+    },
+    "B": {
+      "H": 15,
+      "V": 10,
+      "A": 25,
+      "D": 30,
+      "J": 40,
+      "T1": 10,
+      "T2": 40,
+      "K": 30,
+      "S": 40,
+      "W": 35,
+      "L1": 10,
+      "L2": 25
+    },
+    "A": {
+      "H": 15,
+      "V": 15,
+      "B": 25,
+      "D": 5,
+      "J": 20,
+      "T1": 30,
+      "T2": 15,
+      "K": 25,
+      "S": 30,
+      "W": 50,
+      "L1": 25,
+      "L2": 5
+    },
+    "D": {
+      "H": 15,
+      "V": 20,
+      "B": 30,
+      "A": 5,
+      "J": 15,
+      "T1": 35,
+      "T2": 10,
+      "K": 25,
+      "S": 30,
+      "W": 50,
+      "L1": 30,
+      "L2": 10
+    },
+    "J": {
+      "H": 30,
+      "V": 30,
+      "B": 40,
+      "A": 20,
+      "D": 15,
+      "T1": 40,
+      "T2": 15,
+      "K": 20,
+      "S": 20,
+      "W": 45,
+      "L1": 45,
+      "L2": 25
+    },
+    "T1": {
+      "H": 20,
+      "V": 15,
+      "B": 10,
+      "A": 30,
+      "D": 35,
+      "J": 40,
+      "T2": 45,
+      "K": 25,
+      "S": 35,
+      "W": 25,
+      "L1": 20,
+      "L2": 30
+    },
+    "T2": {
+      "H": 25,
+      "V": 30,
+      "B": 40,
+      "A": 15,
+      "D": 10,
+      "J": 15,
+      "T1": 45,
+      "K": 30,
+      "S": 35,
+      "W": 60,
+      "L1": 40,
+      "L2": 20
+    },
+    "K": {
+      "H": 15,
+      "V": 20,
+      "B": 30,
+      "A": 25,
+      "D": 25,
+      "J": 20,
+      "T1": 25,
+      "T2": 30,
+      "S": 10,
+      "W": 25,
+      "L1": 35,
+      "L2": 30
+    },
+    "S": {
+      "H": 25,
+      "V": 30,
+      "B": 40,
+      "A": 30,
+      "D": 30,
+      "J": 20,
+      "T1": 35,
+      "T2": 35,
+      "K": 10,
+      "W": 30,
+      "L1": 45,
+      "L2": 35
+    },
+    "W": {
+      "H": 35,
+      "V": 35,
+      "B": 35,
+      "A": 50,
+      "D": 50,
+      "J": 45,
+      "T1": 25,
+      "T2": 60,
+      "K": 25,
+      "S": 30,
+      "L1": 45,
+      "L2": 50
+    },
+    "L1": {
+      "H": 20,
+      "V": 15,
+      "B": 10,
+      "A": 25,
+      "D": 30,
+      "J": 45,
+      "T1": 20,
+      "T2": 40,
+      "K": 35,
+      "S": 45,
+      "W": 45,
+      "L2": 20
+    },
+    "L2": {
+      "H": 15,
+      "V": 15,
+      "B": 25,
+      "A": 5,
+      "D": 10,
+      "J": 25,
+      "T1": 30,
+      "T2": 20,
+      "K": 30,
+      "S": 35,
+      "W": 50,
+      "L1": 20
+    }
+  }
+}
