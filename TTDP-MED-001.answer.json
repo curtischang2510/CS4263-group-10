@@ -1,0 +1,159 @@
+{
+  "instance_id": "TTDP-MED-001",
+  "level": "medium",
+  "seed": null,
+  "twin_of": null,
+  "near_miss_twin": "TTDP-MED-001-X (Maritime Museum last entry 13:30 -> 13:00): 0 solutions",
+  "design_intent": "Calendar-style constraints, walk-only. The Maritime Museum closes 17:00 but last entry is 13:30, its gallery is closed 12:00-13:00, and it needs a 10-minute arrival buffer. The ferry runs only at 11:00 / 13:30 / 15:30 with a 10-minute ticketing buffer. The Hilltop Fort has a split window and asymmetric uphill travel (every leg into the Fort is 15 min slower than the same leg out). Trap: the Silk Museum is closed on Mondays, so the Old Town Square is the only way to satisfy the either/or group.",
+  "features": [
+    "split_window",
+    "last_entry",
+    "temporary_closure",
+    "fixed_slots",
+    "arrival_buffer",
+    "closed_day",
+    "asymmetric_travel",
+    "either_or"
+  ],
+  "feasible": true,
+  "num_solutions": 3,
+  "solutions": [
+    {
+      "name": "S1",
+      "total_cost": 0,
+      "return_at": "17:00",
+      "return_mode": "walk",
+      "itinerary": [
+        {
+          "poi": "B",
+          "mode": "walk",
+          "start": "09:15",
+          "end": "10:00"
+        },
+        {
+          "poi": "D",
+          "mode": "walk",
+          "start": "11:00",
+          "end": "11:45"
+        },
+        {
+          "poi": "G",
+          "mode": "walk",
+          "start": "12:10",
+          "end": "12:55"
+        },
+        {
+          "poi": "A",
+          "mode": "walk",
+          "start": "13:30",
+          "end": "14:45"
+        },
+        {
+          "poi": "C",
+          "mode": "walk",
+          "start": "15:10",
+          "end": "16:10"
+        },
+        {
+          "poi": "F",
+          "mode": "walk",
+          "start": "16:20",
+          "end": "16:50"
+        }
+      ]
+    },
+    {
+      "name": "S2",
+      "total_cost": 0,
+      "return_at": "17:15",
+      "return_mode": "walk",
+      "itinerary": [
+        {
+          "poi": "B",
+          "mode": "walk",
+          "start": "09:15",
+          "end": "10:00"
+        },
+        {
+          "poi": "C",
+          "mode": "walk",
+          "start": "10:30",
+          "end": "11:30"
+        },
+        {
+          "poi": "G",
+          "mode": "walk",
+          "start": "11:55",
+          "end": "12:40"
+        },
+        {
+          "poi": "A",
+          "mode": "walk",
+          "start": "13:15",
+          "end": "14:30"
+        },
+        {
+          "poi": "D",
+          "mode": "walk",
+          "start": "15:30",
+          "end": "16:15"
+        },
+        {
+          "poi": "F",
+          "mode": "walk",
+          "start": "16:35",
+          "end": "17:05"
+        }
+      ]
+    },
+    {
+      "name": "S3",
+      "total_cost": 0,
+      "return_at": "17:15",
+      "return_mode": "walk",
+      "itinerary": [
+        {
+          "poi": "B",
+          "mode": "walk",
+          "start": "09:15",
+          "end": "10:00"
+        },
+        {
+          "poi": "D",
+          "mode": "walk",
+          "start": "11:00",
+          "end": "11:45"
+        },
+        {
+          "poi": "G",
+          "mode": "walk",
+          "start": "12:10",
+          "end": "12:55"
+        },
+        {
+          "poi": "A",
+          "mode": "walk",
+          "start": "13:30",
+          "end": "14:45"
+        },
+        {
+          "poi": "F",
+          "mode": "walk",
+          "start": "15:00",
+          "end": "15:30"
+        },
+        {
+          "poi": "C",
+          "mode": "walk",
+          "start": "15:55",
+          "end": "16:55"
+        }
+      ]
+    }
+  ],
+  "hardness": {
+    "walk_only_solutions": 3,
+    "csp_backtracks": null,
+    "csp_runtime_ms": null
+  }
+}

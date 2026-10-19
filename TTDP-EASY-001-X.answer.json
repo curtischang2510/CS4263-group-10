@@ -1,0 +1,20 @@
+{
+  "instance_id": "TTDP-EASY-001-X",
+  "level": "easy",
+  "seed": null,
+  "twin_of": "TTDP-EASY-001",
+  "near_miss_twin": null,
+  "design_intent": "Identical to EASY-001 except the Flower Market closes at 09:55. Leaving the hotel at 09:00, the earliest arrival is 09:15, so the 45-minute visit cannot end before 10:00. A single must-visit check proves infeasibility.",
+  "features": [
+    "opening_window",
+    "must_visit",
+    "infeasible_single_poi"
+  ],
+  "feasible": false,
+  "num_solutions": 0,
+  "hardness": {
+    "walk_only_solutions": 0,
+    "csp_backtracks": null,
+    "csp_runtime_ms": null
+  }
+}

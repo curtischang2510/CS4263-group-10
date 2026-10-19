@@ -1,0 +1,25 @@
+{
+  "instance_id": "TTDP-MED-001-X",
+  "level": "medium",
+  "seed": null,
+  "twin_of": "TTDP-MED-001",
+  "near_miss_twin": null,
+  "design_intent": "Identical to MED-001 except last entry is 13:00. With the 12:00-13:00 gallery closure, the 75-minute museum visit must end by 12:00 or start at exactly 13:00, and neither fits around the ferry slots and the Fort's split window. Removing any one of the closure, either arrival buffer, the Fort's split window or the ferry timetable makes the instance feasible again, so only the combination fails.",
+  "features": [
+    "split_window",
+    "last_entry",
+    "temporary_closure",
+    "fixed_slots",
+    "arrival_buffer",
+    "closed_day",
+    "asymmetric_travel",
+    "either_or"
+  ],
+  "feasible": false,
+  "num_solutions": 0,
+  "hardness": {
+    "walk_only_solutions": 0,
+    "csp_backtracks": null,
+    "csp_runtime_ms": null
+  }
+}
