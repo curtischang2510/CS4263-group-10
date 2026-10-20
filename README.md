@@ -215,12 +215,26 @@ uses.
 
 ### 4.4 File layout and naming
 
+Each scenario lives in its own folder, `testcases/testcase_N/`, which holds the
+feasible instance and its infeasible twin. `testcases/README.md` summarises
+every case.
+
+```
+testcases/
+├── README.md              summary of all cases
+├── example_output.json    required output format
+├── testcase_1/            TTDP-EASY-001 and TTDP-EASY-001-X
+├── testcase_2/            TTDP-MED-001 and TTDP-MED-001-X
+├── testcase_3/            TTDP-HARD-001 and TTDP-HARD-001-X
+└── testcase_4/            TTDP-HARD-002 and TTDP-HARD-002-X
+```
+
 | File | Purpose |
 |---|---|
 | `<ID>.instance.json` | The instance. This is the **only** file the solvers see. |
-| `<ID>.answer.json` | The ground truth: `level`, `feasible`, `num_solutions`, reference solutions, `design_intent` and `features`. **Never give this file to a solver.** |
+| `<ID>.answer.json` | The ground truth: `level`, `feasible`, `num_solutions`, reference solutions, `design_intent` and `features` (the tags are explained in `testcases/README.md`). **Never give this file to a solver.** |
 | `<ID>-X.*` | The deliberately infeasible near-miss twin of `<ID>`. |
-| `example_output.json` | The output format both solvers must produce. |
+| `testcases/example_output.json` | The output format both solvers must produce. |
 
 The required output format is:
 
@@ -238,16 +252,16 @@ justification in `reason`.
 
 ### 4.5 Current instances
 
-| ID | Level | Feasible | Solutions | Notes |
-|---|---|---|---|---|
-| `TTDP-EASY-001` | easy | yes | 26 | Core constraints C1–C4 only. Walk-only, single windows, plenty of slack. |
-| `TTDP-EASY-001-X` | easy | **no** | 0 | The Flower Market closes at 09:55, but the earliest a visit there can end is 10:00. |
-| `TTDP-MED-001` | medium | yes | 3 | Last entry, a gallery closure, ferry slots, arrival buffers, the Fort's split window, uphill travel, and a closed-day trap. |
-| `TTDP-MED-001-X` | medium | **no** | 0 | Museum last entry moves from 13:30 to 13:00. Relaxing any one of five constraints makes it feasible again: the closure, either arrival buffer, the Fort's split window, or the ferry timetable. |
-| `TTDP-HARD-001` | hard | yes | 6 | Two strategies (cafe and walk for $44, or hawker plus taxi for $46). The afternoon is forced: meeting at 15:00, then a rush-hour walk home arriving 17:23. |
-| `TTDP-HARD-001-X` | hard | **no** | 0 | The day ends at 17:20 instead of 17:30. Ignoring the friend's distractor text makes it look feasible. |
-| `TTDP-HARD-002` | hard | yes | 3 | The budget of $65 is met exactly by one of the two strategies. |
-| `TTDP-HARD-002-X` | hard | **no** | 0 | Identical to HARD-002 except the budget is $62. Every constraint passes on its own, and only the combination fails. |
+| ID | Folder | Level | Feasible | Solutions | Notes |
+|---|---|---|---|---|---|
+| `TTDP-EASY-001` | `testcase_1` | easy | yes | 26 | Core constraints C1–C4 only. Walk-only, single windows, plenty of slack. |
+| `TTDP-EASY-001-X` | `testcase_1` | easy | **no** | 0 | The Flower Market closes at 09:55, but the earliest a visit there can end is 10:00. |
+| `TTDP-MED-001` | `testcase_2` | medium | yes | 3 | Last entry, a gallery closure, ferry slots, arrival buffers, the Fort's split window, uphill travel, and a closed-day trap. |
+| `TTDP-MED-001-X` | `testcase_2` | medium | **no** | 0 | Museum last entry moves from 13:30 to 13:00. Relaxing any one of five constraints makes it feasible again: the closure, either arrival buffer, the Fort's split window, or the ferry timetable. |
+| `TTDP-HARD-001` | `testcase_3` | hard | yes | 6 | Two strategies (cafe and walk for $44, or hawker plus taxi for $46). The afternoon is forced: meeting at 15:00, then a rush-hour walk home arriving 17:23. |
+| `TTDP-HARD-001-X` | `testcase_3` | hard | **no** | 0 | The day ends at 17:20 instead of 17:30. Ignoring the friend's distractor text makes it look feasible. |
+| `TTDP-HARD-002` | `testcase_4` | hard | yes | 3 | The budget of $65 is met exactly by one of the two strategies. |
+| `TTDP-HARD-002-X` | `testcase_4` | hard | **no** | 0 | Identical to HARD-002 except the budget is $62. Every constraint passes on its own, and only the combination fails. |
 
 ---
 
@@ -258,13 +272,13 @@ justification in `reason`.
 Validate an instance and enumerate its ground-truth solutions:
 
 ```bash
-python ttdp_tool.py analyse TTDP-HARD-002.instance.json
+python ttdp_tool.py analyse testcases/testcase_4/TTDP-HARD-002.instance.json
 ```
 
 Check a solver's or LLM's output against an instance:
 
 ```bash
-python ttdp_tool.py check TTDP-HARD-002.instance.json example_output.json
+python ttdp_tool.py check testcases/testcase_4/TTDP-HARD-002.instance.json testcases/example_output.json
 ```
 
 The `check` command prints `VALID` or a list of violations. Each violation code
