@@ -1,5 +1,6 @@
 {
   "instance_id": "TTDP-HARD-002-X",
+  "level": "hard",
   "twin_of": "TTDP-HARD-002",
   "feasible": false,
   "num_solutions": 0,
