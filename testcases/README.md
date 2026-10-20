@@ -18,6 +18,8 @@ In the plans below, `[t]` marks a taxi leg. Every other leg is walked.
 | TTDP-HARD-001-X | testcase_3 | hard | no | 0 | Day end 17:30 → 17:20 |
 | TTDP-HARD-002 | testcase_4 | hard | yes | 3 | — |
 | TTDP-HARD-002-X | testcase_4 | hard | no | 0 | Budget $65 → $62 |
+| TTDP-EASY-002 | testcase_5 | easy | yes | 7 | — |
+| TTDP-EASY-002-X | testcase_5 | easy | no | 0 | Day end 15:30 → 15:10 |
 
 ## Feature tags
 
@@ -56,6 +58,7 @@ each tag.
 | `mutual_exclusion` | `at_most_one_of` | At most one POI in each group may be visited. Combined with `either_or`, the group becomes "exactly one". |
 | `prompt_injection` | `description` | Free text that contradicts the structured data (e.g. "the timetable can be ignored"). Descriptions never bind, so a correct planner ignores it. |
 | `infeasible_single_poi` | — | Twin-only tag: one POI's constraints fail on their own, which is enough to prove infeasibility. |
+| `infeasible_return` | — | Twin-only tag: every POI fits on its own, but no visit order gets back to the start by the day's end. Proving it needs a bound over all orders. |
 
 ## Easy: TTDP-EASY-001 — `testcase_1/` (Tue, 09:00–15:30)
 
@@ -123,3 +126,20 @@ each tag.
   taxi, and a floating lunch.
 - **Trap:** the cruise description claims its timetable can be ignored.
 - **Twin (`-X`):** the budget drops to $62.
+
+## Easy: TTDP-EASY-002 — `testcase_5/` (Tue, 09:00–15:30)
+
+- **Constraints:** C1–C4 only. The day is walk-only, travel times are
+  symmetric, and there is no budget. Every window is 09:00–18:00 except the
+  Butterfly Park, which opens at 10:00.
+- **POIs:** four must-visits (Art Museum 90 min, Butterfly Park 60, Chinatown
+  Street 45, Discovery Science Centre 75), and no optional POIs.
+- **Why it is tight:** the visits total 270 min, which looks comfortable in the
+  day. But the shortest loop, H → C → A → B → D → H or its reverse, walks
+  110 min, so the earliest return is 09:00 + 270 + 110 = 15:20. Only 7 of the 24
+  orders get back by 15:30.
+- **Example plan:** H → C 09:15 → A 10:25 → B 12:15 → D 13:35 → H 15:20.
+- **Twin (`-X`):** the day ends at 15:10. Every order gets back at least
+  10 minutes late (the worst gets back at 16:35). No single POI is the problem:
+  the planner has to show that *every* order is too long. Checking one POI
+  isn't enough, unlike EASY-001-X.

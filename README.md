@@ -226,7 +226,8 @@ testcases/
 ├── testcase_1/            TTDP-EASY-001 and TTDP-EASY-001-X
 ├── testcase_2/            TTDP-MED-001 and TTDP-MED-001-X
 ├── testcase_3/            TTDP-HARD-001 and TTDP-HARD-001-X
-└── testcase_4/            TTDP-HARD-002 and TTDP-HARD-002-X
+├── testcase_4/            TTDP-HARD-002 and TTDP-HARD-002-X
+└── testcase_5/            TTDP-EASY-002 and TTDP-EASY-002-X
 ```
 
 | File | Purpose |
@@ -256,6 +257,8 @@ justification in `reason`.
 |---|---|---|---|---|---|
 | `TTDP-EASY-001` | `testcase_1` | easy | yes | 26 | Core constraints C1–C4 only. Walk-only, single windows, plenty of slack. |
 | `TTDP-EASY-001-X` | `testcase_1` | easy | **no** | 0 | The Flower Market closes at 09:55, but the earliest a visit there can end is 10:00. |
+| `TTDP-EASY-002` | `testcase_5` | easy | yes | 7 | All four POIs are must-visit. The visits fit easily, but the shortest loop walks 110 min, so the earliest return is 15:20 against a 15:30 deadline. |
+| `TTDP-EASY-002-X` | `testcase_5` | easy | **no** | 0 | The day ends at 15:10 instead of 15:30. Every order gets back at least 10 min late, so the proof needs a bound over all orders, not one POI. |
 | `TTDP-MED-001` | `testcase_2` | medium | yes | 3 | Last entry, a gallery closure, ferry slots, arrival buffers, the Fort's split window, uphill travel, and a closed-day trap. |
 | `TTDP-MED-001-X` | `testcase_2` | medium | **no** | 0 | Museum last entry moves from 13:30 to 13:00. Relaxing any one of five constraints makes it feasible again: the closure, either arrival buffer, the Fort's split window, or the ferry timetable. |
 | `TTDP-HARD-001` | `testcase_3` | hard | yes | 6 | Two strategies (cafe and walk for $44, or hawker plus taxi for $46). The afternoon is forced: meeting at 15:00, then a rush-hour walk home arriving 17:23. |
