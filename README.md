@@ -72,23 +72,27 @@ distractors. The extra fields used by medium and hard instances:
 
 ## Testing your solver
 
-Make your solver a command that takes one instance path and prints one JSON
-object in the format of [`testcases/example_output.json`](testcases/example_output.json).
-Then plug the command into the runner:
+The solvers are stubs in `solvers/`:
+
+- `csp.py` is Solution A.
+- `llm.py` is Solution B.
+
+To implement one, fill in its `solve(instance)`. It takes the parsed instance
+(a dict) and returns a dict in the format of
+[`testcases/example_output.json`](testcases/example_output.json). To test more
+solvers, such as one per safeguard, add them to `SOLVERS` in
+`solvers/__init__.py`.
+
+Then run:
 
 ```bash
-python run_tests.py --solver "python solver_a.py"
+python run_tests.py
 ```
 
-It runs every case, easy first, and stops at the first failure with the
-reason.
-
-- **Run everything:** `--keep-going` runs every case instead of stopping.
-- **Pick cases:** `--level easy` or `-k HARD-001` chooses which cases run.
-- **Saved outputs:** `--outputs DIR` grades saved `DIR/<ID>.output.json` files,
-  for example from LLM runs.
-- **Platforms:** it works the same on macOS and Windows. On a Mac without
-  `python`, use `python3`.
+The runner runs every implemented solver on every test case, easy first, and
+stops at the first failure with the reason. Solvers that are still stubs are
+skipped. To run one solver only, name it, for example
+`python run_tests.py llm`. On a Mac without `python`, use `python3`.
 
 To check one output:
 
