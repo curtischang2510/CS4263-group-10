@@ -1,11 +1,11 @@
 {
   "schema_version": "2.1",
-  "instance_id": "TTDP-EASY-002",
+  "instance_id": "testcase_5-X",
   "date": "2026-11-10",
   "weekday": "Tue",
   "day_window": {
     "start": "09:00",
-    "end": "15:30"
+    "end": "15:10"
   },
   "start_location": "H",
   "return_to_start": true,

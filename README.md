@@ -9,66 +9,67 @@ deterministic input:
 
 ## Problem
 
-An instance gives:
+A solver gets one `*.instance.json` file. The fields it needs:
 
-- a set of POIs, each with an opening window [*oᵢ*, *cᵢ*] and a visit duration *dᵢ*;
-- a travel-time matrix *tᵢⱼ*, which need not be symmetric;
-- a day window [*S*, *E*];
-- a set of must-visit POIs *M*.
+| Field | Meaning |
+|---|---|
+| `day_window.start`, `day_window.end` | The day window *S* and *E*, as `HH:MM`. |
+| `start_location` | The hotel `H`. The day starts and ends there. |
+| `travel_times[a][b]` | Walking minutes from `a` to `b`, for every pair of locations, including `H`. |
+| `pois[].id` | The POI's ID, used in the output. |
+| `pois[].opening_windows` | One `[open, close]` window. |
+| `pois[].visit_duration` | Minutes spent at the POI. |
+| `pois[].must_visit` | `true` if the POI must be visited, `false` if it is optional. |
 
-The planner outputs an ordered sequence of distinct POIs, with a start time
-*sᵢ* for each one. A plan is feasible if and only if:
+The other fields (`date`, `weekday`, `name`, `entry_fee`, `allow_waiting`) are
+informational.
 
-| ID | Constraint | Formal statement |
-|---|---|---|
-| C1 | Opening hours | *oᵢ ≤ sᵢ* and *sᵢ + dᵢ ≤ cᵢ* |
-| C2 | Travel time | *sᵢ + dᵢ + tᵢⱼ ≤ sⱼ* for each consecutive pair *i → j* |
-| C3 | Day window | *S ≤ sᵢ* and *sᵢ + dᵢ ≤ E*, including the legs from and back to the start location |
-| C4 | Must-visit | every *i ∈ M* is visited exactly once |
+The solver returns a plan in the format of
+[`testcases/example_output.json`](testcases/example_output.json): an
+`itinerary` list of `{"poi", "mode": "walk", "start", "end"}`, plus
+`"return_mode": "walk"`. The checker accepts the plan only if every rule below
+holds. Its violation code is in brackets.
 
-Rules for plans:
+1. **Valid stops.** Each `poi` is a real POI ID and appears at most once
+   (`unknown_poi`, `duplicate_visit`). Every `mode` is `"walk"` (`unknown_mode`).
+2. **Times.** `start` and `end` are 24-hour `HH:MM` (`bad_time_format`), and
+   `end − start = visit_duration` (`wrong_duration`).
+3. **C1 Opening hours.** `open ≤ start` and `end ≤ close` (`outside_opening_hours`).
+4. **C2 Travel time.** The first stop starts no earlier than
+   *S* + `travel_times[H][first]`. Each later stop starts no earlier than the
+   previous stop's `end` + `travel_times[prev][next]` (`insufficient_travel`).
+   Arriving early and waiting is allowed.
+5. **C3 Day window.** The last stop's `end` + `travel_times[last][H]` ≤ *E*
+   (`exceeds_day_window`).
+6. **C4 Must-visit.** Every POI with `must_visit: true` is in the itinerary
+   (`missing_must_visit`). Optional POIs may be visited or skipped.
 
-- **Waiting** for a POI to open is allowed.
-- **Optional POIs** are visited at most once, or skipped.
-- **Times** are whole minutes, written `HH:MM`.
+If no plan satisfies all six rules, return
+`{"feasible": false, "itinerary": [], "reason": "..."}`.
 
 **Correct output:** an itinerary the checker accepts on a feasible instance,
 or `"feasible": false` on an infeasible one. Anything else is wrong.
 
 ## Test cases
 
-`testcases/testcase_N/` holds a feasible instance and its infeasible
-near-miss twin (`-X`), which differs in one parameter. Levels:
+`testcases/testcase_N/` holds `testcase_N`, a feasible instance, and
+`testcase_N-X`, its infeasible near-miss twin, which differs in one
+parameter. All cases are walk-only, with one opening window per POI and
+symmetric travel times. They differ in scale:
 
-- **Easy** uses C1–C4 only.
-- **Medium** adds calendar rules.
-- **Hard** adds budget, travel modes and logic rules.
+| Level | Cases | POIs (must-visit) |
+|---|---|---|
+| Easy | `testcase_1`, `testcase_5` | 5 (4), 4 (4) |
+| Medium | `testcase_2` | 7 (5) |
+| Hard | `testcase_3`, `testcase_4` | 10 (7), 13 (9) |
 
-- `<ID>.instance.json` is the only file a solver may read.
-- `<ID>.answer.json` is the ground truth. **Never give it to a solver.**
+The twins fail in one of two ways:
 
-Description fields are free text and never bind; some contain deliberate
-distractors. The extra fields used by medium and hard instances:
+- **`testcase_1-X`, `testcase_2-X`:** one POI's window can't be met.
+- **`testcase_3-X`, `testcase_4-X`, `testcase_5-X`:** no visiting order gets
+  back to the hotel in time.
 
-| Field | Rule |
-|---|---|
-| `opening_windows` (several) | The visit fits inside **one** window. |
-| `last_entry` | *sᵢ ≤ last_entry*. |
-| `fixed_start_times` | *sᵢ* is one of the listed times (one time = a fixed appointment). |
-| `closures` | The visit may not overlap a listed interval. |
-| `arrival_buffer` | *sᵢ ≥ arrival + buffer*. |
-| `closed_days` | Not visitable on the instance's `weekday`. |
-| `start_location`, `return_to_start` | Start at *h* and be back at *h* by *E*. |
-| `travel_modes` | Per-leg mode: time ⌈*tᵢⱼ* × `time_factor`⌉, cost `cost_per_leg`. |
-| `time_dependent_travel` | Legs departing in the interval take × `multiplier`. |
-| `no_modes` | Listed modes cannot enter or leave this POI. |
-| `max_single_walk` / `max_walk_total` | Walking minutes per leg / per day, including the return leg. |
-| `budget` | Entry fees plus fares, including the return leg, ≤ budget. |
-| `precedence` [a, b] | If *b* is visited, *a* comes earlier. |
-| `immediately_after` [a, b] | If *b* is visited, the stop directly before it is *a*. |
-| `if_then` [a, b] | If *a* is visited, *b* is visited too. |
-| `at_least_one_of` / `at_most_one_of` | Each group has ≥ 1 / ≤ 1 visited POI. |
-| `lunch` | Exactly one candidate, starting within `start_between`. |
+`<ID>.answer.json` is the ground truth. **Never give it to a solver.**
 
 ## Testing your solver
 

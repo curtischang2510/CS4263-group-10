@@ -1,0 +1,175 @@
+{
+  "instance_id": "testcase_3",
+  "level": "hard",
+  "seed": null,
+  "twin_of": null,
+  "near_miss_twin": "testcase_3-X (day ends 18:00 -> 17:25): 0 solutions",
+  "design_intent": "Core constraints C1-C4 only, at a larger scale than the easy cases: 10 POIs (7 must-visit, 3 optional), walk-only, one opening window each, symmetric travel, no budget. Early-closing markets and late-opening sights force an order, and the earliest possible return is 17:30 against a 18:00 day end.",
+  "features": [
+    "opening_window",
+    "day_window",
+    "return_to_start",
+    "must_visit",
+    "optional_poi"
+  ],
+  "feasible": true,
+  "num_solutions": 16,
+  "solutions": [
+    {
+      "name": "S1",
+      "total_cost": 0,
+      "return_at": "17:30",
+      "return_mode": "walk",
+      "itinerary": [
+        {
+          "poi": "B",
+          "mode": "walk",
+          "start": "08:45",
+          "end": "09:30"
+        },
+        {
+          "poi": "I",
+          "mode": "walk",
+          "start": "09:40",
+          "end": "10:20"
+        },
+        {
+          "poi": "E",
+          "mode": "walk",
+          "start": "10:40",
+          "end": "11:55"
+        },
+        {
+          "poi": "G",
+          "mode": "walk",
+          "start": "12:25",
+          "end": "13:25"
+        },
+        {
+          "poi": "C",
+          "mode": "walk",
+          "start": "13:35",
+          "end": "14:35"
+        },
+        {
+          "poi": "A",
+          "mode": "walk",
+          "start": "14:50",
+          "end": "16:20"
+        },
+        {
+          "poi": "D",
+          "mode": "walk",
+          "start": "16:40",
+          "end": "17:10"
+        }
+      ]
+    },
+    {
+      "name": "S2",
+      "total_cost": 0,
+      "return_at": "17:35",
+      "return_mode": "walk",
+      "itinerary": [
+        {
+          "poi": "I",
+          "mode": "walk",
+          "start": "08:55",
+          "end": "09:35"
+        },
+        {
+          "poi": "B",
+          "mode": "walk",
+          "start": "09:45",
+          "end": "10:30"
+        },
+        {
+          "poi": "E",
+          "mode": "walk",
+          "start": "10:45",
+          "end": "12:00"
+        },
+        {
+          "poi": "G",
+          "mode": "walk",
+          "start": "12:30",
+          "end": "13:30"
+        },
+        {
+          "poi": "C",
+          "mode": "walk",
+          "start": "13:40",
+          "end": "14:40"
+        },
+        {
+          "poi": "A",
+          "mode": "walk",
+          "start": "14:55",
+          "end": "16:25"
+        },
+        {
+          "poi": "D",
+          "mode": "walk",
+          "start": "16:45",
+          "end": "17:15"
+        }
+      ]
+    },
+    {
+      "name": "S3",
+      "total_cost": 0,
+      "return_at": "17:40",
+      "return_mode": "walk",
+      "itinerary": [
+        {
+          "poi": "B",
+          "mode": "walk",
+          "start": "08:45",
+          "end": "09:30"
+        },
+        {
+          "poi": "I",
+          "mode": "walk",
+          "start": "09:40",
+          "end": "10:20"
+        },
+        {
+          "poi": "E",
+          "mode": "walk",
+          "start": "10:40",
+          "end": "11:55"
+        },
+        {
+          "poi": "C",
+          "mode": "walk",
+          "start": "12:30",
+          "end": "13:30"
+        },
+        {
+          "poi": "G",
+          "mode": "walk",
+          "start": "13:40",
+          "end": "14:40"
+        },
+        {
+          "poi": "A",
+          "mode": "walk",
+          "start": "15:00",
+          "end": "16:30"
+        },
+        {
+          "poi": "D",
+          "mode": "walk",
+          "start": "16:50",
+          "end": "17:20"
+        }
+      ]
+    }
+  ],
+  "solutions_note": "3 of 16 solutions listed (earliest returns first); any plan the checker accepts is correct.",
+  "hardness": {
+    "walk_only_solutions": 16,
+    "csp_backtracks": null,
+    "csp_runtime_ms": null
+  }
+}

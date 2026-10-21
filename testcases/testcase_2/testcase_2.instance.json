@@ -1,0 +1,180 @@
+{
+  "schema_version": "2.1",
+  "instance_id": "testcase_2",
+  "date": "2026-11-11",
+  "weekday": "Wed",
+  "day_window": {
+    "start": "09:00",
+    "end": "17:00"
+  },
+  "start_location": "H",
+  "return_to_start": true,
+  "allow_waiting": true,
+  "pois": [
+    {
+      "id": "A",
+      "name": "Harbour Museum",
+      "opening_windows": [
+        [
+          "10:00",
+          "17:00"
+        ]
+      ],
+      "visit_duration": 75,
+      "must_visit": true,
+      "entry_fee": 0
+    },
+    {
+      "id": "B",
+      "name": "Morning Fish Market",
+      "opening_windows": [
+        [
+          "08:00",
+          "11:30"
+        ]
+      ],
+      "visit_duration": 45,
+      "must_visit": true,
+      "entry_fee": 0
+    },
+    {
+      "id": "C",
+      "name": "Lakeside Gardens",
+      "opening_windows": [
+        [
+          "09:00",
+          "18:00"
+        ]
+      ],
+      "visit_duration": 60,
+      "must_visit": true,
+      "entry_fee": 0
+    },
+    {
+      "id": "D",
+      "name": "Bell Tower",
+      "opening_windows": [
+        [
+          "13:00",
+          "17:00"
+        ]
+      ],
+      "visit_duration": 30,
+      "must_visit": true,
+      "entry_fee": 0
+    },
+    {
+      "id": "E",
+      "name": "Textile Gallery",
+      "opening_windows": [
+        [
+          "09:30",
+          "16:00"
+        ]
+      ],
+      "visit_duration": 60,
+      "must_visit": true,
+      "entry_fee": 0
+    },
+    {
+      "id": "F",
+      "name": "Canal Promenade",
+      "opening_windows": [
+        [
+          "09:00",
+          "20:00"
+        ]
+      ],
+      "visit_duration": 30,
+      "must_visit": false,
+      "entry_fee": 0
+    },
+    {
+      "id": "G",
+      "name": "Old Cafe Street",
+      "opening_windows": [
+        [
+          "11:00",
+          "19:00"
+        ]
+      ],
+      "visit_duration": 45,
+      "must_visit": false,
+      "entry_fee": 0
+    }
+  ],
+  "travel_times": {
+    "H": {
+      "A": 15,
+      "B": 15,
+      "C": 20,
+      "D": 20,
+      "E": 15,
+      "F": 15,
+      "G": 20
+    },
+    "A": {
+      "H": 15,
+      "B": 25,
+      "C": 15,
+      "D": 15,
+      "E": 30,
+      "F": 25,
+      "G": 20
+    },
+    "B": {
+      "H": 15,
+      "A": 25,
+      "C": 35,
+      "D": 15,
+      "E": 20,
+      "F": 25,
+      "G": 35
+    },
+    "C": {
+      "H": 20,
+      "A": 15,
+      "B": 35,
+      "D": 30,
+      "E": 30,
+      "F": 20,
+      "G": 10
+    },
+    "D": {
+      "H": 20,
+      "A": 15,
+      "B": 15,
+      "C": 30,
+      "E": 30,
+      "F": 35,
+      "G": 35
+    },
+    "E": {
+      "H": 15,
+      "A": 30,
+      "B": 20,
+      "C": 30,
+      "D": 30,
+      "F": 15,
+      "G": 25
+    },
+    "F": {
+      "H": 15,
+      "A": 25,
+      "B": 25,
+      "C": 20,
+      "D": 35,
+      "E": 15,
+      "G": 10
+    },
+    "G": {
+      "H": 20,
+      "A": 20,
+      "B": 35,
+      "C": 10,
+      "D": 35,
+      "E": 25,
+      "F": 10
+    }
+  }
+}
