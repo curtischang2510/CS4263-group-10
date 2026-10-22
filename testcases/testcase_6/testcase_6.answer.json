@@ -1,0 +1,309 @@
+{
+  "instance_id": "testcase_6",
+  "level": "medium",
+  "seed": null,
+  "twin_of": null,
+  "near_miss_twin": "testcase_6-X (Jade Temple closes 11:30 -> 10:50): 0 solutions",
+  "design_intent": "Core constraints C1-C4 only, at the same scale as testcase_2: 7 POIs (5 must-visit, 2 optional), walk-only, one opening window each, symmetric travel, no budget. Two must-visits have early, overlapping windows and are 20 min apart: the Wet Market (M, must end by 10:30) and the Jade Temple (T, opens 10:00, closes 11:30). Only M then T fits both, so every solution starts M 09:15 -> T 10:20; the rest of the order is free, and the earliest return is 16:35 against a 17:00 day end.",
+  "features": [
+    "opening_window",
+    "day_window",
+    "return_to_start",
+    "must_visit",
+    "optional_poi"
+  ],
+  "feasible": true,
+  "num_solutions": 7,
+  "solutions": [
+    {
+      "name": "S1",
+      "total_cost": 0,
+      "return_at": "16:35",
+      "return_mode": "walk",
+      "itinerary": [
+        {
+          "poi": "M",
+          "mode": "walk",
+          "start": "09:15",
+          "end": "10:00"
+        },
+        {
+          "poi": "T",
+          "mode": "walk",
+          "start": "10:20",
+          "end": "11:05"
+        },
+        {
+          "poi": "A",
+          "mode": "walk",
+          "start": "11:40",
+          "end": "13:10"
+        },
+        {
+          "poi": "L",
+          "mode": "walk",
+          "start": "14:00",
+          "end": "14:30"
+        },
+        {
+          "poi": "S",
+          "mode": "walk",
+          "start": "15:10",
+          "end": "16:10"
+        }
+      ]
+    },
+    {
+      "name": "S2",
+      "total_cost": 0,
+      "return_at": "16:35",
+      "return_mode": "walk",
+      "itinerary": [
+        {
+          "poi": "M",
+          "mode": "walk",
+          "start": "09:15",
+          "end": "10:00"
+        },
+        {
+          "poi": "T",
+          "mode": "walk",
+          "start": "10:20",
+          "end": "11:05"
+        },
+        {
+          "poi": "A",
+          "mode": "walk",
+          "start": "11:40",
+          "end": "13:10"
+        },
+        {
+          "poi": "S",
+          "mode": "walk",
+          "start": "14:00",
+          "end": "15:00"
+        },
+        {
+          "poi": "L",
+          "mode": "walk",
+          "start": "15:40",
+          "end": "16:10"
+        }
+      ]
+    },
+    {
+      "name": "S3",
+      "total_cost": 0,
+      "return_at": "16:40",
+      "return_mode": "walk",
+      "itinerary": [
+        {
+          "poi": "M",
+          "mode": "walk",
+          "start": "09:15",
+          "end": "10:00"
+        },
+        {
+          "poi": "T",
+          "mode": "walk",
+          "start": "10:20",
+          "end": "11:05"
+        },
+        {
+          "poi": "S",
+          "mode": "walk",
+          "start": "11:50",
+          "end": "12:50"
+        },
+        {
+          "poi": "A",
+          "mode": "walk",
+          "start": "13:40",
+          "end": "15:10"
+        },
+        {
+          "poi": "L",
+          "mode": "walk",
+          "start": "15:45",
+          "end": "16:15"
+        }
+      ]
+    },
+    {
+      "name": "S4",
+      "total_cost": 0,
+      "return_at": "16:55",
+      "return_mode": "walk",
+      "itinerary": [
+        {
+          "poi": "M",
+          "mode": "walk",
+          "start": "09:15",
+          "end": "10:00"
+        },
+        {
+          "poi": "T",
+          "mode": "walk",
+          "start": "10:20",
+          "end": "11:05"
+        },
+        {
+          "poi": "P",
+          "mode": "walk",
+          "start": "11:20",
+          "end": "11:50"
+        },
+        {
+          "poi": "A",
+          "mode": "walk",
+          "start": "12:15",
+          "end": "13:45"
+        },
+        {
+          "poi": "L",
+          "mode": "walk",
+          "start": "14:20",
+          "end": "14:50"
+        },
+        {
+          "poi": "S",
+          "mode": "walk",
+          "start": "15:30",
+          "end": "16:30"
+        }
+      ]
+    },
+    {
+      "name": "S5",
+      "total_cost": 0,
+      "return_at": "17:00",
+      "return_mode": "walk",
+      "itinerary": [
+        {
+          "poi": "M",
+          "mode": "walk",
+          "start": "09:15",
+          "end": "10:00"
+        },
+        {
+          "poi": "T",
+          "mode": "walk",
+          "start": "10:20",
+          "end": "11:05"
+        },
+        {
+          "poi": "C",
+          "mode": "walk",
+          "start": "11:25",
+          "end": "12:05"
+        },
+        {
+          "poi": "A",
+          "mode": "walk",
+          "start": "12:20",
+          "end": "13:50"
+        },
+        {
+          "poi": "L",
+          "mode": "walk",
+          "start": "14:25",
+          "end": "14:55"
+        },
+        {
+          "poi": "S",
+          "mode": "walk",
+          "start": "15:35",
+          "end": "16:35"
+        }
+      ]
+    },
+    {
+      "name": "S6",
+      "total_cost": 0,
+      "return_at": "17:00",
+      "return_mode": "walk",
+      "itinerary": [
+        {
+          "poi": "M",
+          "mode": "walk",
+          "start": "09:15",
+          "end": "10:00"
+        },
+        {
+          "poi": "T",
+          "mode": "walk",
+          "start": "10:20",
+          "end": "11:05"
+        },
+        {
+          "poi": "P",
+          "mode": "walk",
+          "start": "11:20",
+          "end": "11:50"
+        },
+        {
+          "poi": "S",
+          "mode": "walk",
+          "start": "12:20",
+          "end": "13:20"
+        },
+        {
+          "poi": "L",
+          "mode": "walk",
+          "start": "14:00",
+          "end": "14:30"
+        },
+        {
+          "poi": "A",
+          "mode": "walk",
+          "start": "15:05",
+          "end": "16:35"
+        }
+      ]
+    },
+    {
+      "name": "S7",
+      "total_cost": 0,
+      "return_at": "17:00",
+      "return_mode": "walk",
+      "itinerary": [
+        {
+          "poi": "M",
+          "mode": "walk",
+          "start": "09:15",
+          "end": "10:00"
+        },
+        {
+          "poi": "T",
+          "mode": "walk",
+          "start": "10:20",
+          "end": "11:05"
+        },
+        {
+          "poi": "S",
+          "mode": "walk",
+          "start": "11:50",
+          "end": "12:50"
+        },
+        {
+          "poi": "L",
+          "mode": "walk",
+          "start": "14:00",
+          "end": "14:30"
+        },
+        {
+          "poi": "A",
+          "mode": "walk",
+          "start": "15:05",
+          "end": "16:35"
+        }
+      ]
+    }
+  ],
+  "solutions_note": "All 7 solutions listed; any plan the checker accepts is correct.",
+  "hardness": {
+    "walk_only_solutions": 7,
+    "csp_backtracks": null,
+    "csp_runtime_ms": null
+  }
+}

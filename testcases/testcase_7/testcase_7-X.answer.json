@@ -1,0 +1,22 @@
+{
+  "instance_id": "testcase_7-X",
+  "level": "hard",
+  "seed": null,
+  "twin_of": "testcase_7",
+  "near_miss_twin": null,
+  "design_intent": "Identical to testcase_7 except the Clock Tower Tour (A) opens at 10:35. The 5 min delay passes straight through to the Orchid Conservatory (B), which would end 13:20, after its 13:15 close, and no other order works. A planner that sees a 70 min wait at A may assume 5 min is easily absorbed. There is no short certificate: every POI fits on its own, every pair of must-visits fits together, the shortest loop through all seven must-visits needs 455 of the 570 min, and making any one must-visit optional restores feasibility (2 to 139 solutions). Proving infeasibility needs propagation through several constraints at once. In the start-time CSP described in testcase_6-X, AC-3 does this with no search; an LLM has to carry the chain of deductions itself.",
+  "features": [
+    "opening_window",
+    "day_window",
+    "return_to_start",
+    "must_visit",
+    "infeasible_chain"
+  ],
+  "feasible": false,
+  "num_solutions": 0,
+  "hardness": {
+    "walk_only_solutions": 0,
+    "csp_backtracks": null,
+    "csp_runtime_ms": null
+  }
+}
