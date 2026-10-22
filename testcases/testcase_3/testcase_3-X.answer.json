@@ -1,0 +1,22 @@
+{
+  "instance_id": "testcase_3-X",
+  "level": "hard",
+  "seed": null,
+  "twin_of": "testcase_3",
+  "near_miss_twin": null,
+  "design_intent": "Identical to testcase_3 except the day ends at 17:25. Every POI still fits on its own, but the earliest any order of the 7 must-visits gets back to the hotel is 17:30, 5 min late. As in testcase_5-X, proving infeasibility needs a bound over every order, not a check of one POI.",
+  "features": [
+    "opening_window",
+    "day_window",
+    "return_to_start",
+    "must_visit",
+    "infeasible_return"
+  ],
+  "feasible": false,
+  "num_solutions": 0,
+  "hardness": {
+    "walk_only_solutions": 0,
+    "csp_backtracks": null,
+    "csp_runtime_ms": null
+  }
+}

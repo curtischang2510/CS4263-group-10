@@ -1,0 +1,396 @@
+{
+  "schema_version": "2.1",
+  "instance_id": "testcase_4-X",
+  "date": "2026-11-13",
+  "weekday": "Fri",
+  "day_window": {
+    "start": "08:00",
+    "end": "19:05"
+  },
+  "start_location": "H",
+  "return_to_start": true,
+  "allow_waiting": true,
+  "pois": [
+    {
+      "id": "A",
+      "name": "National Museum",
+      "opening_windows": [
+        [
+          "10:00",
+          "17:00"
+        ]
+      ],
+      "visit_duration": 90,
+      "must_visit": true,
+      "entry_fee": 0
+    },
+    {
+      "id": "B",
+      "name": "Dawn Market",
+      "opening_windows": [
+        [
+          "07:00",
+          "10:30"
+        ]
+      ],
+      "visit_duration": 40,
+      "must_visit": true,
+      "entry_fee": 0
+    },
+    {
+      "id": "C",
+      "name": "Botanic Gardens",
+      "opening_windows": [
+        [
+          "09:00",
+          "18:00"
+        ]
+      ],
+      "visit_duration": 60,
+      "must_visit": true,
+      "entry_fee": 0
+    },
+    {
+      "id": "D",
+      "name": "Clock Tower",
+      "opening_windows": [
+        [
+          "13:00",
+          "18:00"
+        ]
+      ],
+      "visit_duration": 30,
+      "must_visit": true,
+      "entry_fee": 0
+    },
+    {
+      "id": "E",
+      "name": "Maritime Museum",
+      "opening_windows": [
+        [
+          "09:30",
+          "16:30"
+        ]
+      ],
+      "visit_duration": 75,
+      "must_visit": true,
+      "entry_fee": 0
+    },
+    {
+      "id": "F",
+      "name": "Riverside Walk",
+      "opening_windows": [
+        [
+          "07:00",
+          "21:00"
+        ]
+      ],
+      "visit_duration": 30,
+      "must_visit": false,
+      "entry_fee": 0
+    },
+    {
+      "id": "G",
+      "name": "Science Centre",
+      "opening_windows": [
+        [
+          "10:00",
+          "18:00"
+        ]
+      ],
+      "visit_duration": 60,
+      "must_visit": true,
+      "entry_fee": 0
+    },
+    {
+      "id": "I",
+      "name": "Hilltop Temple",
+      "opening_windows": [
+        [
+          "07:00",
+          "12:00"
+        ]
+      ],
+      "visit_duration": 40,
+      "must_visit": true,
+      "entry_fee": 0
+    },
+    {
+      "id": "J",
+      "name": "Night Market Street",
+      "opening_windows": [
+        [
+          "16:00",
+          "23:00"
+        ]
+      ],
+      "visit_duration": 45,
+      "must_visit": true,
+      "entry_fee": 0
+    },
+    {
+      "id": "K",
+      "name": "Central Square",
+      "opening_windows": [
+        [
+          "07:00",
+          "23:00"
+        ]
+      ],
+      "visit_duration": 20,
+      "must_visit": false,
+      "entry_fee": 0
+    },
+    {
+      "id": "L",
+      "name": "Stadium Tour",
+      "opening_windows": [
+        [
+          "11:00",
+          "16:00"
+        ]
+      ],
+      "visit_duration": 60,
+      "must_visit": false,
+      "entry_fee": 0
+    },
+    {
+      "id": "M",
+      "name": "Craft Village",
+      "opening_windows": [
+        [
+          "09:00",
+          "17:00"
+        ]
+      ],
+      "visit_duration": 45,
+      "must_visit": true,
+      "entry_fee": 0
+    },
+    {
+      "id": "N",
+      "name": "Chinatown Street",
+      "opening_windows": [
+        [
+          "08:00",
+          "22:00"
+        ]
+      ],
+      "visit_duration": 40,
+      "must_visit": false,
+      "entry_fee": 0
+    }
+  ],
+  "travel_times": {
+    "H": {
+      "A": 15,
+      "B": 15,
+      "C": 20,
+      "D": 20,
+      "E": 15,
+      "F": 15,
+      "G": 20,
+      "I": 25,
+      "J": 25,
+      "K": 10,
+      "L": 25,
+      "M": 25,
+      "N": 10
+    },
+    "A": {
+      "H": 15,
+      "B": 25,
+      "C": 15,
+      "D": 20,
+      "E": 30,
+      "F": 30,
+      "G": 20,
+      "I": 35,
+      "J": 10,
+      "K": 15,
+      "L": 10,
+      "M": 30,
+      "N": 15
+    },
+    "B": {
+      "H": 15,
+      "A": 25,
+      "C": 35,
+      "D": 20,
+      "E": 15,
+      "F": 25,
+      "G": 35,
+      "I": 10,
+      "J": 35,
+      "K": 10,
+      "L": 40,
+      "M": 15,
+      "N": 25
+    },
+    "C": {
+      "H": 20,
+      "A": 15,
+      "B": 35,
+      "D": 35,
+      "E": 35,
+      "F": 25,
+      "G": 10,
+      "I": 45,
+      "J": 20,
+      "K": 25,
+      "L": 10,
+      "M": 45,
+      "N": 15
+    },
+    "D": {
+      "H": 20,
+      "A": 20,
+      "B": 20,
+      "C": 35,
+      "E": 30,
+      "F": 35,
+      "G": 40,
+      "I": 25,
+      "J": 20,
+      "K": 15,
+      "L": 30,
+      "M": 15,
+      "N": 25
+    },
+    "E": {
+      "H": 15,
+      "A": 30,
+      "B": 15,
+      "C": 35,
+      "D": 30,
+      "F": 15,
+      "G": 30,
+      "I": 20,
+      "J": 40,
+      "K": 20,
+      "L": 40,
+      "M": 30,
+      "N": 20
+    },
+    "F": {
+      "H": 15,
+      "A": 30,
+      "B": 25,
+      "C": 25,
+      "D": 35,
+      "E": 15,
+      "G": 15,
+      "I": 35,
+      "J": 40,
+      "K": 25,
+      "L": 35,
+      "M": 40,
+      "N": 15
+    },
+    "G": {
+      "H": 20,
+      "A": 20,
+      "B": 35,
+      "C": 10,
+      "D": 40,
+      "E": 30,
+      "F": 15,
+      "I": 45,
+      "J": 30,
+      "K": 30,
+      "L": 20,
+      "M": 45,
+      "N": 15
+    },
+    "I": {
+      "H": 25,
+      "A": 35,
+      "B": 10,
+      "C": 45,
+      "D": 25,
+      "E": 20,
+      "F": 35,
+      "G": 45,
+      "J": 40,
+      "K": 20,
+      "L": 50,
+      "M": 15,
+      "N": 35
+    },
+    "J": {
+      "H": 25,
+      "A": 10,
+      "B": 35,
+      "C": 20,
+      "D": 20,
+      "E": 40,
+      "F": 40,
+      "G": 30,
+      "I": 40,
+      "K": 25,
+      "L": 15,
+      "M": 30,
+      "N": 25
+    },
+    "K": {
+      "H": 10,
+      "A": 15,
+      "B": 10,
+      "C": 25,
+      "D": 15,
+      "E": 20,
+      "F": 25,
+      "G": 30,
+      "I": 20,
+      "J": 25,
+      "L": 30,
+      "M": 15,
+      "N": 15
+    },
+    "L": {
+      "H": 25,
+      "A": 10,
+      "B": 40,
+      "C": 10,
+      "D": 30,
+      "E": 40,
+      "F": 35,
+      "G": 20,
+      "I": 50,
+      "J": 15,
+      "K": 30,
+      "M": 40,
+      "N": 20
+    },
+    "M": {
+      "H": 25,
+      "A": 30,
+      "B": 15,
+      "C": 45,
+      "D": 15,
+      "E": 30,
+      "F": 40,
+      "G": 45,
+      "I": 15,
+      "J": 30,
+      "K": 15,
+      "L": 40,
+      "N": 35
+    },
+    "N": {
+      "H": 10,
+      "A": 15,
+      "B": 25,
+      "C": 15,
+      "D": 25,
+      "E": 20,
+      "F": 15,
+      "G": 15,
+      "I": 35,
+      "J": 25,
+      "K": 15,
+      "L": 20,
+      "M": 35
+    }
+  }
+}

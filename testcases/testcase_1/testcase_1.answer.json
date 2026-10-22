@@ -1,9 +1,9 @@
 {
-  "instance_id": "TTDP-EASY-001",
+  "instance_id": "testcase_1",
   "level": "easy",
   "seed": null,
   "twin_of": null,
-  "near_miss_twin": "TTDP-EASY-001-X (Flower Market closes 12:00 -> 09:55): 0 solutions",
+  "near_miss_twin": "testcase_1-X (Flower Market closes 12:00 -> 09:55): 0 solutions",
   "design_intent": "Core constraints C1-C4 only: walk-only, single opening windows, symmetric travel, no budget. Four must-visits and one optional POI with plenty of slack, so many orders work. The only real ordering pressure is that the Flower Market closes at 12:00 and the Clock Tower only opens at 13:00.",
   "features": [
     "opening_window",

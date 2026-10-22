@@ -1,9 +1,9 @@
 {
-  "instance_id": "TTDP-EASY-002",
+  "instance_id": "testcase_5",
   "level": "easy",
   "seed": null,
   "twin_of": null,
-  "near_miss_twin": "TTDP-EASY-002-X (day ends 15:30 -> 15:10): 0 solutions",
+  "near_miss_twin": "testcase_5-X (day ends 15:30 -> 15:10): 0 solutions",
   "design_intent": "Core constraints C1-C4 only: walk-only, wide opening windows, symmetric travel, no budget. All four POIs are must-visit and their visits total 270 min, which looks comfortable in a 6.5 h day. The binding constraint is the return to the hotel: the shortest loop H-C-A-B-D-H (or its reverse) walks 110 min, so the earliest possible return is 15:20. Only the 7 orders that get back by 15:30 work.",
   "features": [
     "opening_window",
