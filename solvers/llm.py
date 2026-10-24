@@ -4,13 +4,14 @@ Requires:
     pip install google-genai pydantic
     GEMINI_API_KEY environment variable set.
 
-Usage:
+Usage (run all tests via the test runner):
     python run_tests.py llm                   # baseline
     python run_tests.py llm_cot               # safeguard 1: Chain-of-Thought
     python run_tests.py llm_self_verify       # safeguard 2: Self-verification
     python run_tests.py llm_verifier_loop     # safeguard 3: Verifier-in-the-loop
     python run_tests.py llm_self_consistency  # safeguard 4: Self-consistency (5x API calls)
     python run_tests.py llm llm_cot llm_self_verify llm_verifier_loop llm_self_consistency  # all
+
 """
 
 import json
@@ -62,7 +63,7 @@ Given a TTDP instance in JSON, either:
   (a) Produce a feasible one-day itinerary satisfying every constraint below, or
   (b) Set feasible=false if no valid itinerary exists and explain why in reason.
 
-This is a satisfaction problem — any plan that meets all constraints is equally correct.
+This is a satisfaction problem — any plan that meet,s all constraints is equally correct.
 
 INSTANCE FIELDS:
 day_window          {start, end} — the day boundaries in HH:MM.
@@ -103,18 +104,21 @@ ARITHMETIC RULES:
 """
 
 MODEL = "gemini-3.5-flash-lite"
-os.environ["GEMINI_API_KEY"] = "AQ.Ab8RN6KwZ2vkhEAU2cvTXrgp0lO3NHHUyEI71AsbMuTGba2fbg" # INSERT API KEY HERE
+os.environ["GEMINI_API_KEY"] = "" # INSERT API KEY HERE
 client = genai.Client()
 
+# Safeguard #1: 
 # Chain of Thought (CoT) prompting output schema — same as baseline but with a reasoning field prepended
 
 class TTDPOutputCoT(BaseModel):
     reasoning: str = Field(
         description=(
-            "Step-by-step constraint analysis before deciding. "
-            "For each must-visit POI: confirm its window fits the day. "
-            "Then try orderings, compute exact start/end times, and verify "
-            "C1–C4 for every stop and the return leg before committing."
+            "A chain of intermediate reasoning steps that lead to the final answer. "
+            "Note which POIs are most time-constrained, derive a candidate ordering, then compute "
+            "exact arrival and start times at each stop showing the arithmetic explicitly "
+            "(e.g. 'B ends 09:45, travel 20 min → arrive A at 10:05, open at 10:00, start 10:05, end 11:35'). "
+            "Verify each constraint — opening windows, travel times, day window, must-visits, return leg — "
+            "before committing to the final answer."
         )
     )
     feasible: bool = Field(
@@ -133,6 +137,7 @@ class TTDPOutputCoT(BaseModel):
         )
     )
 
+# Safeguard 2: Self-verification
 # Self-verification schema and system instruction
 
 class VerificationResult(BaseModel):
@@ -141,8 +146,11 @@ class VerificationResult(BaseModel):
     )
     violations: List[str] = Field(
         description=(
-            "List of constraint violations found. Each entry names the constraint and the POI or leg "
-            "where it fails, e.g. 'C1: POI B ends at 10:15 but window closes at 10:00'. "
+            "List of specific, actionable feedback items for each constraint violation found. "
+            "Each entry must state: which constraint is violated, the exact values that cause the failure, "
+            "and what needs to change to fix it. "
+            "Example: 'C2: POI B ends at 09:45, travel to A is 25 min → earliest start for A is 10:10, "
+            "but plan has A starting at 10:05. Delay A to 10:10 or reorder B after A.' "
             "Empty list when valid=true."
         )
     )
@@ -173,8 +181,9 @@ C2 Travel time: for each consecutive pair i → j, end(i) + travel_times[i][j] �
 C3 Day window: end(last_poi) + travel_times[last_poi][start_location] ≤ day_window.end.
 C4 Must-visit: every POI with must_visit=true appears exactly once in the itinerary.
 
-Check every constraint. If all pass, set valid=true and violations=[].
-If any fail, set valid=false and list each violation clearly.
+Check every constraint by computing exact values. If all pass, set valid=true and violations=[].
+If any fail, set valid=false. For each violation, state the constraint broken, show the exact
+calculation that reveals the failure, and specify what change to the plan would fix it.
 """
 
 # Shared helpers
@@ -188,7 +197,8 @@ def _prompt(instance: dict) -> str:
 
 def _verify_prompt(instance: dict, plan: dict) -> str:
     return (
-        "Check this proposed TTDP plan against the instance and report any constraint violations.\n\n"
+        "Check every constraint in the proposed TTDP plan. "
+        "For each violation, compute the exact values, explain why it fails, and state what needs to change.\n\n"
         "INSTANCE:\n" + json.dumps(instance, indent=2)
         + "\n\nPROPOSED PLAN:\n" + json.dumps(plan, indent=2)
     )
@@ -343,7 +353,7 @@ def solve_verifier_loop(instance: dict) -> dict:
 # Safeguard 4: Self-consistency
 
 K_SAMPLES = 5
-SC_TEMPERATURE = 0.8  # > 0 to produce diverse reasoning paths across samples
+SC_TEMPERATURE = 1.1  # > 0 to produce diverse reasoning paths across samples
 
 def _poi_sequence(plan: dict) -> tuple:
     return tuple(s["poi"] for s in plan.get("itinerary", []))
@@ -351,7 +361,7 @@ def _poi_sequence(plan: dict) -> tuple:
 def _majority_plan(plans: List[dict], instance: dict) -> dict:
     """Aggregate K plans by majority vote on POI sequence, preferring valid plans.
 
-    Per Wang et al. (2022), self-consistency marginalises over reasoning paths and
+    Self-consistency marginalises over reasoning paths and
     picks the most consistent final answer. Here the 'answer' is the ordered POI
     sequence. Valid plans (those that pass the deterministic checker) are preferred;
     we fall back to raw majority only when none are valid.
@@ -383,7 +393,7 @@ def _majority_plan(plans: List[dict], instance: dict) -> dict:
     return plans[0]
 
 def solve_self_consistency(instance: dict) -> dict:
-    """Safeguard 4 — Self-consistency (Wang et al., 2022).
+    """Safeguard 4 — Self-consistency.
     Samples K independent CoT plans at temperature > 0, then selects the answer
     with the most consistent POI sequence, preferring plans that pass the checker.
     Self-consistency is always combined with CoT per the original paper.
@@ -402,7 +412,7 @@ def solve_self_consistency(instance: dict) -> dict:
             contents=_prompt(instance),
             config=sc_config,
         )
-        raw = TTDPOutputCoT.model_validate_json(response.text)
+        raw = response.parsed if response.parsed is not None else TTDPOutputCoT.model_validate_json(response.text)
         # Strip reasoning field so downstream handling matches other solvers
         plans.append(TTDPOutput(
             feasible=raw.feasible,
