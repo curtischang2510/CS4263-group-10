@@ -3,6 +3,14 @@
 Requires:
     pip install google-genai pydantic
     GEMINI_API_KEY environment variable set.
+
+Usage:
+    python run_tests.py llm                   # baseline
+    python run_tests.py llm_cot               # safeguard 1: Chain-of-Thought
+    python run_tests.py llm_self_verify       # safeguard 2: Self-verification
+    python run_tests.py llm_verifier_loop     # safeguard 3: Verifier-in-the-loop
+    python run_tests.py llm_self_consistency  # safeguard 4: Self-consistency (5x API calls)
+    python run_tests.py llm llm_cot llm_self_verify llm_verifier_loop llm_self_consistency  # all
 """
 
 import json
