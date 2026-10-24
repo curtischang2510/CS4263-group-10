@@ -157,10 +157,10 @@ class VerificationResult(BaseModel):
 
 VERIFY_SYSTEM_INSTRUCTION = """You are a constraint checker for the Tourist Trip Design Problem (TTDP).
 
-You will be given a TTDP instance and a proposed itinerary. Check every constraint below against
-the plan and report any violations. Be precise: compute the exact times.
+You will be given a TTDP instance and a proposed itinerary. Check every constraint below
+against the plan by computing exact values, and report any violations.
 
-INSTANCE FIELDS (same as the planner):
+INSTANCE FIELDS:
 day_window          {start, end} — the day boundaries in HH:MM.
 start_location      Where the day begins and must return to by day_window.end.
 return_to_start     The itinerary must return to start_location by day_window.end —
@@ -175,15 +175,27 @@ pois                List of points of interest. Each POI has:
 travel_times        travel_times[from][to] = travel time in whole minutes.
 
 CONSTRAINTS TO CHECK:
-C1 Opening hours: each stop's [start, end] must fit entirely within one of its opening_windows.
-C2 Travel time: for each consecutive pair i → j, end(i) + travel_times[i][j] ≤ start(j).
-   Also check the first leg: day_window.start + travel_times[start_location][first_poi] ≤ start(first_poi).
-C3 Day window: end(last_poi) + travel_times[last_poi][start_location] ≤ day_window.end.
-C4 Must-visit: every POI with must_visit=true appears exactly once in the itinerary.
 
-Check every constraint by computing exact values. If all pass, set valid=true and violations=[].
-If any fail, set valid=false. For each violation, state the constraint broken, show the exact
-calculation that reveals the failure, and specify what change to the plan would fix it.
+C1 Opening hours. For each stop, verify open <= start AND end <= close for at least one
+   of the POI's opening_windows. Also verify end - start = visit_duration exactly.
+
+C2 Travel time. Check the first leg:
+   earliest_start(first_poi) = day_window.start + travel_times[start_location][first_poi]
+   Verify: start(first_poi) >= earliest_start.
+   For each consecutive pair i → j:
+   earliest_start(j) = end(i) + travel_times[i][j]
+   Verify: start(j) >= earliest_start(j).
+
+C3 Day window. Check the return leg:
+   return_arrival = end(last_poi) + travel_times[last_poi][start_location]
+   Verify: return_arrival <= day_window.end.
+
+C4 Must-visit. For each POI with must_visit=true, verify it appears exactly once
+   in the itinerary.
+
+If all constraints pass, set valid=true and violations=[].
+If any fail, set valid=false. For each violation, show the exact values that reveal
+the failure and state what needs to change to fix it.
 """
 
 # Shared helpers
