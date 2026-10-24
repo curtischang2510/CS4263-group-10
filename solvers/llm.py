@@ -104,7 +104,7 @@ ARITHMETIC RULES:
 """
 
 MODEL = "gemini-3.5-flash-lite"
-os.environ["GEMINI_API_KEY"] = "AQ.Ab8RN6KwZ2vkhEAU2cvTXrgp0lO3NHHUyEI71AsbMuTGba2fbg" # INSERT API KEY HERE
+os.environ["GEMINI_API_KEY"] = "" # INSERT API KEY HERE
 client = genai.Client()
 
 # Safeguard #1: 
@@ -365,7 +365,7 @@ def solve_verifier_loop(instance: dict) -> dict:
 # Safeguard 4: Self-consistency
 
 K_SAMPLES = 5
-SC_TEMPERATURE = 1.1  # > 0 to produce diverse reasoning paths across samples
+SC_TEMPERATURE = 0.8  # > 0 to produce diverse reasoning paths across samples
 
 def _poi_sequence(plan: dict) -> tuple:
     return tuple(s["poi"] for s in plan.get("itinerary", []))
