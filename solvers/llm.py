@@ -104,7 +104,7 @@ ARITHMETIC RULES:
 """
 
 MODEL = "gemini-3.5-flash-lite"
-os.environ["GEMINI_API_KEY"] = "" # INSERT API KEY HERE
+os.environ["GEMINI_API_KEY"] = "AQ.Ab8RN6KwZ2vkhEAU2cvTXrgp0lO3NHHUyEI71AsbMuTGba2fbg" # INSERT API KEY HERE
 client = genai.Client()
 
 # Safeguard #1: 
@@ -412,7 +412,7 @@ def solve_self_consistency(instance: dict) -> dict:
             contents=_prompt(instance),
             config=sc_config,
         )
-        raw = response.parsed if response.parsed is not None else TTDPOutputCoT.model_validate_json(response.text)
+        raw = TTDPOutputCoT.model_validate_json(response.text)
         # Strip reasoning field so downstream handling matches other solvers
         plans.append(TTDPOutput(
             feasible=raw.feasible,
