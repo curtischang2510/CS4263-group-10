@@ -104,8 +104,14 @@ ARITHMETIC RULES:
 """
 
 MODEL = "gemini-3.5-flash-lite"
-os.environ["GEMINI_API_KEY"] = "" # INSERT API KEY HERE
+os.environ["GEMINI_API_KEY"] = "AQ.Ab8RN6KwZ2vkhEAU2cvTXrgp0lO3NHHUyEI71AsbMuTGba2fbg" # INSERT API KEY HERE
 client = genai.Client()
+
+DEBUG = False  # Set to True to print LLM reasoning and intermediate steps
+
+def _debug(*args, **kwargs):
+    if DEBUG:
+        print(*args, **kwargs)
 
 # Safeguard #1: 
 # Chain of Thought (CoT) prompting output schema — same as baseline but with a reasoning field prepended
@@ -242,6 +248,10 @@ def solve(instance: dict) -> dict:
         },
     )
     result = TTDPOutput.model_validate_json(interaction.output_text)
+    _debug("\n[baseline] feasible:", result.feasible)
+    _debug("[baseline] itinerary:", [s.poi for s in result.itinerary])
+    if not result.feasible:
+        _debug("[baseline] reason:", result.reason)
     return result.model_dump()
 
 # Safeguard 1: Chain-of-Thought
@@ -262,6 +272,11 @@ def solve_cot(instance: dict) -> dict:
         },
     )
     result = TTDPOutputCoT.model_validate_json(interaction.output_text)
+    _debug("\n[cot] reasoning:\n", result.reasoning)
+    _debug("[cot] feasible:", result.feasible)
+    _debug("[cot] itinerary:", [s.poi for s in result.itinerary])
+    if not result.feasible:
+        _debug("[cot] reason:", result.reason)
     # Strip the reasoning field before returning so the checker sees the same shape
     return TTDPOutput(
         feasible=result.feasible,
@@ -295,9 +310,12 @@ def solve_self_verify(instance: dict) -> dict:
             },
         )
         result = TTDPOutput.model_validate_json(plan_interaction.output_text)
+        _debug(f"\n[self_verify] attempt {attempt + 1} — feasible: {result.feasible}")
+        _debug(f"[self_verify] itinerary: {[s.poi for s in result.itinerary]}")
 
         # Infeasibility claims need no verification
         if not result.feasible:
+            _debug("[self_verify] infeasible claim, skipping verification")
             return result.model_dump()
 
         # Step 2: verify the plan
@@ -312,6 +330,10 @@ def solve_self_verify(instance: dict) -> dict:
             },
         )
         verification = VerificationResult.model_validate_json(verify_interaction.output_text)
+        _debug(f"[self_verify] verification valid: {verification.valid}")
+        if not verification.valid:
+            for v in verification.violations:
+                _debug(f"  violation: {v}")
 
         if verification.valid:
             return result.model_dump()
@@ -319,6 +341,7 @@ def solve_self_verify(instance: dict) -> dict:
         # Step 3: re-prompt with violations for next attempt
         prompt = _retry_prompt(instance, verification.violations)
 
+    _debug("[self_verify] max attempts reached, returning last plan")
     # Return the last plan even if verification still failed
     return result.model_dump()
 
@@ -345,13 +368,17 @@ def solve_verifier_loop(instance: dict) -> dict:
             },
         )
         result = TTDPOutput.model_validate_json(interaction.output_text)
+        _debug(f"\n[verifier_loop] attempt {attempt + 1} — feasible: {result.feasible}")
+        _debug(f"[verifier_loop] itinerary: {[s.poi for s in result.itinerary]}")
 
         # Infeasibility claims cannot be checked further
         if not result.feasible:
+            _debug("[verifier_loop] infeasible claim, skipping checker")
             return result.model_dump()
 
         # Step 2: run the deterministic checker
         violations = T.check(instance, result.model_dump())
+        _debug(f"[verifier_loop] T.check violations: {violations}")
 
         if not violations:
             return result.model_dump()
@@ -359,6 +386,7 @@ def solve_verifier_loop(instance: dict) -> dict:
         # Step 3: re-prompt with the exact violation codes for next attempt
         prompt = _retry_prompt(instance, violations)
 
+    _debug("[verifier_loop] max attempts reached, returning last plan")
     # Return the last plan even if it still has violations
     return result.model_dump()
 
@@ -418,13 +446,16 @@ def solve_self_consistency(instance: dict) -> dict:
     )
 
     plans = []
-    for _ in range(K_SAMPLES):
+    for i in range(K_SAMPLES):
         response = client.models.generate_content(
             model=MODEL,
             contents=_prompt(instance),
             config=sc_config,
         )
         raw = TTDPOutputCoT.model_validate_json(response.text)
+        _debug(f"\n[self_consistency] sample {i + 1}/{K_SAMPLES}")
+        _debug(f"[self_consistency] reasoning:\n{raw.reasoning}")
+        _debug(f"[self_consistency] feasible: {raw.feasible}, itinerary: {[s.poi for s in raw.itinerary]}")
         # Strip reasoning field so downstream handling matches other solvers
         plans.append(TTDPOutput(
             feasible=raw.feasible,
@@ -433,4 +464,6 @@ def solve_self_consistency(instance: dict) -> dict:
             reason=raw.reason,
         ).model_dump())
 
-    return _majority_plan(plans, instance)
+    selected = _majority_plan(plans, instance)
+    _debug(f"\n[self_consistency] selected — feasible: {selected['feasible']}, itinerary: {[s['poi'] for s in selected['itinerary']]}")
+    return selected
