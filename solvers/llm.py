@@ -224,13 +224,22 @@ def _verify_prompt(instance: dict, plan: dict) -> str:
         + "\n\nPROPOSED PLAN:\n" + json.dumps(plan, indent=2)
     )
 
-def _retry_prompt(instance: dict, violations: List[str], previous_plan: dict = None) -> str:
-    violations_text = "\n".join(f"  - {v}" for v in violations)
+def _retry_prompt(instance: dict, history: List[dict]) -> str:
+    """history is a list of {"plan": ..., "violations": [...]} dicts, one per failed attempt."""
     parts = []
-    if previous_plan:
-        parts.append("Your previous plan:\n" + json.dumps(previous_plan, indent=2))
-    parts.append("had the following constraint violations:\n" + violations_text)
-    parts.append("Fix all violations and return a corrected plan for this instance:\n\n" + json.dumps(instance, indent=2))
+    for i, entry in enumerate(history):
+        violations_text = "\n".join(f"  - {v}" for v in entry["violations"])
+        parts.append(
+            f"Attempt {i + 1} plan:\n" + json.dumps(entry["plan"], indent=2)
+            + f"\nViolations:\n{violations_text}"
+        )
+    parts.append(
+        "All attempts above failed. "
+        "Fix all violations and return a corrected plan — "
+        "or if the violations cannot be resolved (e.g. the same POI keeps failing regardless of ordering), "
+        "set feasible=false and explain why.\n\n"
+        "Instance:\n" + json.dumps(instance, indent=2)
+    )
     return "\n\n".join(parts)
 
 # Baseline solver
@@ -290,7 +299,7 @@ def solve_cot(instance: dict) -> dict:
 
 # Safeguard 2: Self-verification
 
-MAX_ATTEMPTS = 5
+MAX_ATTEMPTS = 3
 
 def solve_self_verify(instance: dict) -> dict:
     """Safeguard 2 — Self-verification.
@@ -299,6 +308,7 @@ def solve_self_verify(instance: dict) -> dict:
     correction. Retries up to MAX_ATTEMPTS times.
     """
     prompt = _prompt(instance)
+    history = []
 
     for attempt in range(MAX_ATTEMPTS):
         # Step 1: generate a plan
@@ -341,8 +351,9 @@ def solve_self_verify(instance: dict) -> dict:
         if verification.valid:
             return result.model_dump()
 
-        # Step 3: re-prompt with violations for next attempt
-        prompt = _retry_prompt(instance, verification.violations)
+        # Step 3: accumulate history and re-prompt
+        history.append({"plan": result.model_dump(), "violations": verification.violations})
+        prompt = _retry_prompt(instance, history)
 
     _debug("[self_verify] max attempts reached, returning last plan")
     # Return the last plan even if verification still failed
@@ -357,6 +368,7 @@ def solve_verifier_loop(instance: dict) -> dict:
     Retries up to MAX_ATTEMPTS times.
     """
     prompt = _prompt(instance)
+    history = []  # list of {"plan": ..., "violations": [...]} for each failed attempt
 
     for attempt in range(MAX_ATTEMPTS):
         # Step 1: generate a plan
@@ -386,8 +398,9 @@ def solve_verifier_loop(instance: dict) -> dict:
         if not violations:
             return result.model_dump()
 
-        # Step 3: re-prompt with violation codes and the previous plan for context
-        prompt = _retry_prompt(instance, violations, previous_plan=result.model_dump())
+        # Step 3: accumulate history and re-prompt with full violation history
+        history.append({"plan": result.model_dump(), "violations": violations})
+        prompt = _retry_prompt(instance, history)
 
     _debug("[verifier_loop] max attempts reached, returning last plan")
     return result.model_dump()
