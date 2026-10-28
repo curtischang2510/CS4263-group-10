@@ -104,10 +104,10 @@ ARITHMETIC RULES:
 """
 
 MODEL = "gemini-3.5-flash-lite"
-os.environ["GEMINI_API_KEY"] = "AQ.Ab8RN6KwZ2vkhEAU2cvTXrgp0lO3NHHUyEI71AsbMuTGba2fbg" # INSERT API KEY HERE
+os.environ["GEMINI_API_KEY"] = "" # INSERT API KEY HERE
 client = genai.Client()
 
-DEBUG = False  # Set to True to print LLM reasoning and intermediate steps
+DEBUG = True  # Set to True to print LLM reasoning and intermediate steps
 
 def _debug(*args, **kwargs):
     if DEBUG:
@@ -123,8 +123,11 @@ class TTDPOutputCoT(BaseModel):
             "Note which POIs are most time-constrained, derive a candidate ordering, then compute "
             "exact arrival and start times at each stop showing the arithmetic explicitly "
             "(e.g. 'B ends 09:45, travel 20 min → arrive A at 10:05, open at 10:00, start 10:05, end 11:35'). "
-            "Verify each constraint — opening windows, travel times, day window, must-visits, return leg — "
-            "before committing to the final answer."
+            "For each stop verify C1 explicitly: start >= open AND end <= close — "
+            "both bounds must hold, not just that the POI is open at arrival. "
+            "Also verify travel times, the day window return leg, and all must-visits "
+            "before committing to the final answer. "
+            "If any constraint fails, declare feasible=false."
         )
     )
     feasible: bool = Field(
@@ -221,14 +224,14 @@ def _verify_prompt(instance: dict, plan: dict) -> str:
         + "\n\nPROPOSED PLAN:\n" + json.dumps(plan, indent=2)
     )
 
-def _retry_prompt(instance: dict, violations: List[str]) -> str:
+def _retry_prompt(instance: dict, violations: List[str], previous_plan: dict = None) -> str:
     violations_text = "\n".join(f"  - {v}" for v in violations)
-    return (
-        "Your previous plan had the following constraint violations:\n"
-        + violations_text
-        + "\n\nFix all violations and return a corrected plan for this instance:\n\n"
-        + json.dumps(instance, indent=2)
-    )
+    parts = []
+    if previous_plan:
+        parts.append("Your previous plan:\n" + json.dumps(previous_plan, indent=2))
+    parts.append("had the following constraint violations:\n" + violations_text)
+    parts.append("Fix all violations and return a corrected plan for this instance:\n\n" + json.dumps(instance, indent=2))
+    return "\n\n".join(parts)
 
 # Baseline solver
 
@@ -287,7 +290,7 @@ def solve_cot(instance: dict) -> dict:
 
 # Safeguard 2: Self-verification
 
-MAX_ATTEMPTS = 3
+MAX_ATTEMPTS = 5
 
 def solve_self_verify(instance: dict) -> dict:
     """Safeguard 2 — Self-verification.
@@ -371,9 +374,9 @@ def solve_verifier_loop(instance: dict) -> dict:
         _debug(f"\n[verifier_loop] attempt {attempt + 1} — feasible: {result.feasible}")
         _debug(f"[verifier_loop] itinerary: {[s.poi for s in result.itinerary]}")
 
-        # Infeasibility claims cannot be checked further
+        # Infeasibility claims cannot be verified further — accept and return
         if not result.feasible:
-            _debug("[verifier_loop] infeasible claim, skipping checker")
+            _debug("[verifier_loop] infeasible claim, returning")
             return result.model_dump()
 
         # Step 2: run the deterministic checker
@@ -383,17 +386,16 @@ def solve_verifier_loop(instance: dict) -> dict:
         if not violations:
             return result.model_dump()
 
-        # Step 3: re-prompt with the exact violation codes for next attempt
-        prompt = _retry_prompt(instance, violations)
+        # Step 3: re-prompt with violation codes and the previous plan for context
+        prompt = _retry_prompt(instance, violations, previous_plan=result.model_dump())
 
     _debug("[verifier_loop] max attempts reached, returning last plan")
-    # Return the last plan even if it still has violations
     return result.model_dump()
 
 # Safeguard 4: Self-consistency
 
 K_SAMPLES = 5
-SC_TEMPERATURE = 0.8  # > 0 to produce diverse reasoning paths across samples
+SC_TEMPERATURE = 0.7  # > 0 to produce diverse reasoning paths across samples
 
 def _poi_sequence(plan: dict) -> tuple:
     return tuple(s["poi"] for s in plan.get("itinerary", []))
