@@ -104,7 +104,7 @@ ARITHMETIC RULES:
 """
 
 MODEL = "gemini-3.5-flash-lite"
-os.environ["GEMINI_API_KEY"] = "" # INSERT API KEY HERE
+os.environ["GEMINI_API_KEY"] = "AQ.Ab8RN6KwZ2vkhEAU2cvTXrgp0lO3NHHUyEI71AsbMuTGba2fbg" # INSERT API KEY HERE
 client = genai.Client()
 
 DEBUG = True  # Set to True to print LLM reasoning and intermediate steps
@@ -481,4 +481,71 @@ def solve_self_consistency(instance: dict) -> dict:
 
     selected = _majority_plan(plans, instance)
     _debug(f"\n[self_consistency] selected — feasible: {selected['feasible']}, itinerary: {[s['poi'] for s in selected['itinerary']]}")
+    return selected
+
+# Combined: CoT + Verifier-in-the-loop + Self-consistency
+
+def _verifier_loop_one_sample(instance: dict, raw: TTDPOutputCoT) -> dict:
+    """Run verifier-in-the-loop correction on one CoT sample.
+    Returns the corrected plan as a TTDPOutput dict.
+    """
+    result = TTDPOutput(
+        feasible=raw.feasible,
+        itinerary=raw.itinerary,
+        return_mode=raw.return_mode,
+        reason=raw.reason,
+    )
+    if not result.feasible:
+        return result.model_dump()
+
+    history = []
+    for attempt in range(MAX_ATTEMPTS):
+        violations = T.check(instance, result.model_dump())
+        if not violations:
+            return result.model_dump()
+
+        history.append({"plan": result.model_dump(), "violations": violations})
+        interaction = client.interactions.create(
+            model=MODEL,
+            system_instruction=SYSTEM_INSTRUCTION,
+            input=_retry_prompt(instance, history),
+            response_format={
+                "type": "text",
+                "mime_type": "application/json",
+                "schema": TTDPOutput.model_json_schema(),
+            },
+        )
+        result = TTDPOutput.model_validate_json(interaction.output_text)
+        if not result.feasible:
+            return result.model_dump()
+
+    return result.model_dump()
+
+def solve_combined(instance: dict) -> dict:
+    """Combined safeguards: CoT + Verifier-in-the-loop + Self-consistency.
+    Samples K CoT plans, runs verifier-in-the-loop correction on each,
+    then aggregates via majority vote over POI sequences.
+    """
+    sc_config = types.GenerateContentConfig(
+        system_instruction=SYSTEM_INSTRUCTION,
+        temperature=SC_TEMPERATURE,
+        response_mime_type="application/json",
+        response_schema=TTDPOutputCoT,
+    )
+
+    plans = []
+    for i in range(K_SAMPLES):
+        response = client.models.generate_content(
+            model=MODEL,
+            contents=_prompt(instance),
+            config=sc_config,
+        )
+        raw = TTDPOutputCoT.model_validate_json(response.text)
+        _debug(f"\n[combined] sample {i + 1}/{K_SAMPLES} — feasible: {raw.feasible}, itinerary: {[s.poi for s in raw.itinerary]}")
+        corrected = _verifier_loop_one_sample(instance, raw)
+        _debug(f"[combined] after correction — feasible: {corrected['feasible']}, itinerary: {[s['poi'] for s in corrected['itinerary']]}")
+        plans.append(corrected)
+
+    selected = _majority_plan(plans, instance)
+    _debug(f"\n[combined] selected — feasible: {selected['feasible']}, itinerary: {[s['poi'] for s in selected['itinerary']]}")
     return selected
