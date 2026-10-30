@@ -79,6 +79,36 @@ The twins fail in one of four ways:
 
 `<ID>.answer.json` is the ground truth. **Never give it to a solver.**
 
+## Solution A: CSP solver
+
+`solvers/csp.py` models the problem as a disjunctive-ordering CSP:
+
+- **Variables:** one per pair of must-visit POIs.
+- **Domain:** "i before j" or "j before i".
+- **Bounds:** each POI keeps a start-time interval `[lo, hi]` from its opening window
+  and the day window, including the hotel legs.
+
+AC-3 removes orderings that the bounds rule out and tightens the bounds once a pair is
+fixed. Backtracking search picks a pair by MRV and then the degree heuristic, orders
+its values by LCV (most slack left first), and runs AC-3 after every choice. Each POI
+in the final order starts as early as possible.
+
+It relies on two simplifications, both exact when travel times obey the triangle
+inequality **including the visit duration**:
+`travel[a][c] ≤ travel[a][b] + visit_duration[b] + travel[b][c]`.
+**All test cases must satisfy this.**
+
+- Optional POIs are dropped, since visiting one can never help.
+- Travel time is enforced between every ordered pair of stops, not only between
+  consecutive ones.
+
+Its unit tests cover the 10 test cases, boundary edge cases, and 300 random instances
+cross-checked against the exhaustive search in `ttdp_tool.py`:
+
+```bash
+python3 -m unittest discover tests -v
+```
+
 ## Testing your solver
 
 The solvers are stubs in `solvers/`:
