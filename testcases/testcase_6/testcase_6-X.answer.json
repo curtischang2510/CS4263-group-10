@@ -1,0 +1,20 @@
+{
+  "instance_id": "testcase_6-X",
+  "level": "medium",
+  "seed": null,
+  "twin_of": "testcase_6",
+  "near_miss_twin": null,
+  "design_intent": "Identical to testcase_6 except the Jade Temple (T) closes at 10:50. Each POI still fits on its own (T alone: arrive 09:30, wait, visit 10:00-10:45), and the shortest loop through all five must-visits needs 435 of the 480 min, so neither a single-POI check nor a return bound proves infeasibility. The conflict is between M and T: M first ends 10:00 at the earliest, so T cannot start before 10:20 and ends 11:05; T first ends 10:45 at the earliest, so M cannot start before 11:05, after it closes. Making either M or T optional restores feasibility (19 and 34 solutions). In a CSP with one start-time variable per must-visit (domains cut by the opening window, travel from H and the return deadline) and a pairwise 'i before j or j before i, plus travel' constraint, AC-3 on the M-T constraint empties M's domain with no search.",
+  "features": [
+    "opening_window",
+    "must_visit",
+    "infeasible_pair"
+  ],
+  "feasible": false,
+  "num_solutions": 0,
+  "hardness": {
+    "walk_only_solutions": 0,
+    "csp_backtracks": null,
+    "csp_runtime_ms": null
+  }
+}

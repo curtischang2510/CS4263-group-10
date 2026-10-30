@@ -60,14 +60,22 @@ symmetric travel times. They differ in scale:
 | Level | Cases | POIs (must-visit) |
 |---|---|---|
 | Easy | `testcase_1`, `testcase_5` | 5 (4), 4 (4) |
-| Medium | `testcase_2` | 7 (5) |
-| Hard | `testcase_3`, `testcase_4` | 10 (7), 13 (9) |
+| Medium | `testcase_2`, `testcase_6` | 7 (5), 7 (5) |
+| Hard | `testcase_3`, `testcase_4`, `testcase_7` | 10 (7), 13 (9), 10 (7) |
 
-The twins fail in one of two ways:
+`testcase_7` has exactly one valid visiting order, and it includes a forced
+wait.
+
+The twins fail in one of four ways:
 
 - **`testcase_1-X`, `testcase_2-X`:** one POI's window can't be met.
 - **`testcase_3-X`, `testcase_4-X`, `testcase_5-X`:** no visiting order gets
   back to the hotel in time.
+- **`testcase_6-X`:** two POIs each fit alone, but their windows can't both
+  be met in either order.
+- **`testcase_7-X`:** every POI fits alone, every pair fits together and the
+  shortest loop fits in the day, yet no full order works. Proving it takes a
+  chain of deductions across several POIs.
 
 `<ID>.answer.json` is the ground truth. **Never give it to a solver.**
 
