@@ -42,6 +42,7 @@ def grade(inst, ans, out):
 def run(name, solve, cases):
     """Return 'pass', 'fail' or 'skip' for one solver."""
     print(f"\n== {name}")
+    failed = False
     for c in cases:
         t0 = time.time()
         try:
@@ -53,7 +54,9 @@ def run(name, solve, cases):
         kind = "feasible" if c["ans"]["feasible"] else "infeasible"
         print(f"{'PASS' if reason is None else 'FAIL'}  {c['id']:18s} {c['level']:6s} {kind:10s} {time.time() - t0:6.2f}s")
         if reason:
-            print(f"      {reason}"); return "fail"
+            print(f"      {reason}"); failed = True
+    if failed:
+        return "fail"
     print(f"   all {len(cases)} cases passed"); return "pass"
 
 def main():
@@ -64,10 +67,8 @@ def main():
     results = {}
     for n in names:
         results[n] = run(n, SOLVERS[n], cases)
-        if results[n] == "fail": break
     print("\n" + ", ".join(f"{n}: {r}" for n, r in results.items()))
     if any(r == "fail" for r in results.values()):
-        print("Stopped at the first failure.")
         sys.exit(1)
 
 if __name__ == "__main__":
