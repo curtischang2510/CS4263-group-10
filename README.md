@@ -5,7 +5,7 @@ deterministic input:
 
 - **Solution A:** a CSP solver (MRV, degree and LCV heuristics with AC-3).
 - **Solution B:** an LLM planner, tested with safeguards added one at a time
-  (chain-of-thought, self-verification, verifier-in-the-loop, self-consistency).
+  (chain-of-thought, self-refine, verifier-in-the-loop, self-consistency).
 
 ## Problem
 
