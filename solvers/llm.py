@@ -7,10 +7,10 @@ Requires:
 Usage (run all tests via the test runner):
     python run_tests.py llm                   # baseline
     python run_tests.py llm_cot               # safeguard 1: Chain-of-Thought
-    python run_tests.py llm_self_verify       # safeguard 2: Self-verification
+    python run_tests.py llm_self_refine       # safeguard 2: Self-Refine
     python run_tests.py llm_verifier_loop     # safeguard 3: Verifier-in-the-loop
     python run_tests.py llm_self_consistency  # safeguard 4: Self-consistency (5x API calls)
-    python run_tests.py llm llm_cot llm_self_verify llm_verifier_loop llm_self_consistency  # all
+    python run_tests.py llm llm_cot llm_self_refine llm_verifier_loop llm_self_consistency  # all
 
 """
 
@@ -146,8 +146,8 @@ class TTDPOutputCoT(BaseModel):
         )
     )
 
-# Safeguard 2: Self-verification
-# Self-verification schema and system instruction
+# Safeguard 2: Self-Refine
+# Self-Refine schema and system instruction
 
 class VerificationResult(BaseModel):
     valid: bool = Field(
@@ -301,11 +301,11 @@ def solve_cot(instance: dict) -> dict:
 
 MAX_ATTEMPTS = 3
 
-def solve_self_verify(instance: dict) -> dict:
-    """Safeguard 2 — Self-verification.
-    After each plan, a second LLM call checks every constraint. If violations
-    are found, the plan and violation list are sent back to the planner for
-    correction. Retries up to MAX_ATTEMPTS times.
+def solve_self_refine(instance: dict) -> dict:
+    """Safeguard 2 — Self-Refine (Madaan et al., 2023).
+    After each plan, a second LLM call critiques every constraint. If violations
+    are found, the feedback is sent back to the planner for refinement.
+    Retries up to MAX_ATTEMPTS times.
     """
     prompt = _prompt(instance)
     history = []
@@ -323,15 +323,15 @@ def solve_self_verify(instance: dict) -> dict:
             },
         )
         result = TTDPOutput.model_validate_json(plan_interaction.output_text)
-        _debug(f"\n[self_verify] attempt {attempt + 1} — feasible: {result.feasible}")
-        _debug(f"[self_verify] itinerary: {[s.poi for s in result.itinerary]}")
+        _debug(f"\n[self_refine] attempt {attempt + 1} — feasible: {result.feasible}")
+        _debug(f"[self_refine] itinerary: {[s.poi for s in result.itinerary]}")
 
-        # Infeasibility claims need no verification
+        # Infeasibility claims need no feedback
         if not result.feasible:
-            _debug("[self_verify] infeasible claim, skipping verification")
+            _debug("[self_refine] infeasible claim, skipping feedback")
             return result.model_dump()
 
-        # Step 2: verify the plan
+        # Step 2: generate feedback via LLM critic
         verify_interaction = client.interactions.create(
             model=MODEL,
             system_instruction=VERIFY_SYSTEM_INSTRUCTION,
@@ -343,7 +343,7 @@ def solve_self_verify(instance: dict) -> dict:
             },
         )
         verification = VerificationResult.model_validate_json(verify_interaction.output_text)
-        _debug(f"[self_verify] verification valid: {verification.valid}")
+        _debug(f"[self_refine] feedback valid: {verification.valid}")
         if not verification.valid:
             for v in verification.violations:
                 _debug(f"  violation: {v}")
@@ -351,11 +351,11 @@ def solve_self_verify(instance: dict) -> dict:
         if verification.valid:
             return result.model_dump()
 
-        # Step 3: accumulate history and re-prompt
+        # Step 3: accumulate history and re-prompt for refinement
         history.append({"plan": result.model_dump(), "violations": verification.violations})
         prompt = _retry_prompt(instance, history)
 
-    _debug("[self_verify] max attempts reached, returning last plan")
+    _debug("[self_refine] max attempts reached, returning last plan")
     # Return the last plan even if verification still failed
     return result.model_dump()
 
@@ -407,7 +407,7 @@ def solve_verifier_loop(instance: dict) -> dict:
 
 # Safeguard 4: Self-consistency
 
-K_SAMPLES = 5
+K_SAMPLES = 3
 SC_TEMPERATURE = 0.7  # > 0 to produce diverse reasoning paths across samples
 
 def _poi_sequence(plan: dict) -> tuple:
@@ -483,29 +483,45 @@ def solve_self_consistency(instance: dict) -> dict:
     _debug(f"\n[self_consistency] selected — feasible: {selected['feasible']}, itinerary: {[s['poi'] for s in selected['itinerary']]}")
     return selected
 
-# Combined: CoT + Verifier-in-the-loop + Self-consistency
+# Combined: CoT + Verifier-in-the-loop
 
-def _verifier_loop_one_sample(instance: dict, raw: TTDPOutputCoT) -> dict:
-    """Run verifier-in-the-loop correction on one CoT sample.
-    Returns the corrected plan as a TTDPOutput dict.
+def solve_combined(instance: dict) -> dict:
+    """Combined safeguards: CoT + Verifier-in-the-loop.
+    Generates a CoT plan, then runs verifier-in-the-loop correction.
     """
+    interaction = client.interactions.create(
+        model=MODEL,
+        system_instruction=SYSTEM_INSTRUCTION,
+        input=_prompt(instance),
+        response_format={
+            "type": "text",
+            "mime_type": "application/json",
+            "schema": TTDPOutputCoT.model_json_schema(),
+        },
+    )
+    raw = TTDPOutputCoT.model_validate_json(interaction.output_text)
+    _debug(f"\n[combined] CoT — feasible: {raw.feasible}, itinerary: {[s.poi for s in raw.itinerary]}")
+    _debug(f"[combined] reasoning:\n{raw.reasoning}")
+
     result = TTDPOutput(
         feasible=raw.feasible,
         itinerary=raw.itinerary,
         return_mode=raw.return_mode,
         reason=raw.reason,
     )
+
     if not result.feasible:
         return result.model_dump()
 
     history = []
     for attempt in range(MAX_ATTEMPTS):
         violations = T.check(instance, result.model_dump())
+        _debug(f"[combined] attempt {attempt + 1} violations: {violations}")
         if not violations:
             return result.model_dump()
 
         history.append({"plan": result.model_dump(), "violations": violations})
-        interaction = client.interactions.create(
+        retry = client.interactions.create(
             model=MODEL,
             system_instruction=SYSTEM_INSTRUCTION,
             input=_retry_prompt(instance, history),
@@ -515,37 +531,10 @@ def _verifier_loop_one_sample(instance: dict, raw: TTDPOutputCoT) -> dict:
                 "schema": TTDPOutput.model_json_schema(),
             },
         )
-        result = TTDPOutput.model_validate_json(interaction.output_text)
+        result = TTDPOutput.model_validate_json(retry.output_text)
+        _debug(f"[combined] after retry — feasible: {result.feasible}, itinerary: {[s.poi for s in result.itinerary]}")
         if not result.feasible:
             return result.model_dump()
 
+    _debug("[combined] max attempts reached, returning last plan")
     return result.model_dump()
-
-def solve_combined(instance: dict) -> dict:
-    """Combined safeguards: CoT + Verifier-in-the-loop + Self-consistency.
-    Samples K CoT plans, runs verifier-in-the-loop correction on each,
-    then aggregates via majority vote over POI sequences.
-    """
-    sc_config = types.GenerateContentConfig(
-        system_instruction=SYSTEM_INSTRUCTION,
-        temperature=SC_TEMPERATURE,
-        response_mime_type="application/json",
-        response_schema=TTDPOutputCoT,
-    )
-
-    plans = []
-    for i in range(K_SAMPLES):
-        response = client.models.generate_content(
-            model=MODEL,
-            contents=_prompt(instance),
-            config=sc_config,
-        )
-        raw = TTDPOutputCoT.model_validate_json(response.text)
-        _debug(f"\n[combined] sample {i + 1}/{K_SAMPLES} — feasible: {raw.feasible}, itinerary: {[s.poi for s in raw.itinerary]}")
-        corrected = _verifier_loop_one_sample(instance, raw)
-        _debug(f"[combined] after correction — feasible: {corrected['feasible']}, itinerary: {[s['poi'] for s in corrected['itinerary']]}")
-        plans.append(corrected)
-
-    selected = _majority_plan(plans, instance)
-    _debug(f"\n[combined] selected — feasible: {selected['feasible']}, itinerary: {[s['poi'] for s in selected['itinerary']]}")
-    return selected
