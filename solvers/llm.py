@@ -10,7 +10,9 @@ Usage (run all tests via the test runner):
     python run_tests.py llm_self_refine       # safeguard 2: Self-Refine
     python run_tests.py llm_verifier_loop     # safeguard 3: Verifier-in-the-loop
     python run_tests.py llm_self_consistency  # safeguard 4: Self-consistency (5x API calls)
-    python run_tests.py llm llm_cot llm_self_refine llm_verifier_loop llm_self_consistency  # all
+    python run_tests.py llm_reflexion         # safeguard 5: Reflexion
+    python run_tests.py llm_ltm               # safeguard 6: Least-to-Most
+    python run_tests.py llm llm_cot llm_self_refine llm_verifier_loop llm_self_consistency llm_reflexion llm_ltm  # all
 
 """
 
@@ -50,8 +52,9 @@ class TTDPOutput(BaseModel):
     )
     reason: str = Field(
         description=(
-            "If feasible=false, explain which constraint(s) make every ordering impossible. "
-            "Empty string when feasible=true."
+            "Justification for the feasibility claim. "
+            "If feasible=true, briefly confirm which constraints were verified and how the plan satisfies them. "
+            "If feasible=false, explain which constraint(s) make every ordering impossible."
         )
     )
 
@@ -63,7 +66,7 @@ Given a TTDP instance in JSON, either:
   (a) Produce a feasible one-day itinerary satisfying every constraint below, or
   (b) Set feasible=false if no valid itinerary exists and explain why in reason.
 
-This is a satisfaction problem — any plan that meet,s all constraints is equally correct.
+This is a satisfaction problem — any plan that meets all constraints is equally correct.
 
 INSTANCE FIELDS:
 day_window          {start, end} — the day boundaries in HH:MM.
@@ -482,6 +485,223 @@ def solve_self_consistency(instance: dict) -> dict:
     selected = _majority_plan(plans, instance)
     _debug(f"\n[self_consistency] selected — feasible: {selected['feasible']}, itinerary: {[s['poi'] for s in selected['itinerary']]}")
     return selected
+
+# Safeguard 5: Reflexion
+
+class ReflectionResult(BaseModel):
+    reflection: str = Field(
+        description=(
+            "A brief verbal reflection on why the previous plan failed. "
+            "Identify the specific reasoning error made (e.g. forgot to check end <= close, "
+            "miscalculated travel time, assumed a POI was reachable without verifying the return leg). "
+            "Then state concretely what you will do differently in the next attempt."
+        )
+    )
+
+REFLECT_SYSTEM_INSTRUCTION = """You are a self-reflective constraint-satisfaction planner reviewing your own failed attempt at the Tourist Trip Design Problem (TTDP).
+
+You will be given the original instance, the plan you produced, and the constraint violations it contains.
+Your task is to write a short, honest reflection: what reasoning error led to this failure, and what you will do differently next time.
+
+Be specific — name the constraint, the exact values, and the flawed assumption. Do not repeat the violation list; diagnose the underlying reasoning mistake."""
+
+def _reflect_prompt(instance: dict, plan: dict, violations: List[str]) -> str:
+    violations_text = "\n".join(f"  - {v}" for v in violations)
+    return (
+        "Your previous plan violated the following constraints:\n"
+        + violations_text
+        + "\n\nInstance:\n" + json.dumps(instance, indent=2)
+        + "\n\nYour plan:\n" + json.dumps(plan, indent=2)
+        + "\n\nWrite a reflection: what reasoning error caused this failure, and what will you do differently?"
+    )
+
+def _reflexion_retry_prompt(instance: dict, reflections: List[str]) -> str:
+    memory = "\n".join(f"Reflection {i + 1}: {r}" for i, r in enumerate(reflections))
+    return (
+        "PAST ATTEMPT REFLECTIONS (use these to avoid repeating the same mistakes):\n"
+        + memory
+        + "\n\nNow solve the instance again, applying what you learned:\n\n"
+        + json.dumps(instance, indent=2)
+    )
+
+def solve_reflexion(instance: dict) -> dict:
+    """Safeguard 5 — Reflexion (Shinn et al., 2023).
+    After each failed plan, a reflection call asks the model to diagnose its own
+    reasoning error. Reflections accumulate as episodic memory prepended to each
+    subsequent attempt, so the model avoids repeating the same mistake.
+    Uses the deterministic T.check() for verification.
+    """
+    reflections: List[str] = []
+
+    for attempt in range(MAX_ATTEMPTS):
+        # Step 1: generate a plan (with CoT to support better reflection)
+        prompt = (
+            _reflexion_retry_prompt(instance, reflections)
+            if reflections
+            else _prompt(instance)
+        )
+        interaction = client.interactions.create(
+            model=MODEL,
+            system_instruction=SYSTEM_INSTRUCTION,
+            input=prompt,
+            response_format={
+                "type": "text",
+                "mime_type": "application/json",
+                "schema": TTDPOutputCoT.model_json_schema(),
+            },
+        )
+        raw = TTDPOutputCoT.model_validate_json(interaction.output_text)
+        _debug(f"\n[reflexion] attempt {attempt + 1} — feasible: {raw.feasible}")
+        _debug(f"[reflexion] itinerary: {[s.poi for s in raw.itinerary]}")
+        _debug(f"[reflexion] reasoning:\n{raw.reasoning}")
+
+        result = TTDPOutput(
+            feasible=raw.feasible,
+            itinerary=raw.itinerary,
+            return_mode=raw.return_mode,
+            reason=raw.reason,
+        )
+
+        # Infeasibility claims: accept without further checking
+        if not result.feasible:
+            _debug("[reflexion] infeasible claim, returning")
+            return result.model_dump()
+
+        # Step 2: verify with deterministic checker
+        violations = T.check(instance, result.model_dump())
+        _debug(f"[reflexion] T.check violations: {violations}")
+
+        if not violations:
+            return result.model_dump()
+
+        # Step 3: generate a verbal reflection on the failure
+        reflect_interaction = client.interactions.create(
+            model=MODEL,
+            system_instruction=REFLECT_SYSTEM_INSTRUCTION,
+            input=_reflect_prompt(instance, result.model_dump(), violations),
+            response_format={
+                "type": "text",
+                "mime_type": "application/json",
+                "schema": ReflectionResult.model_json_schema(),
+            },
+        )
+        reflection = ReflectionResult.model_validate_json(reflect_interaction.output_text)
+        _debug(f"[reflexion] reflection: {reflection.reflection}")
+        reflections.append(reflection.reflection)
+
+    _debug("[reflexion] max attempts reached, returning last plan")
+    return result.model_dump()
+
+
+# Safeguard 6: Least-to-Most Prompting
+
+class FeasibilityAnalysis(BaseModel):
+    poi_checks: List[str] = Field(
+        description=(
+            "For each must-visit POI, show: earliest possible start "
+            "(= max(open, day_window.start + travel_H_to_poi)), latest possible start "
+            "(= min(close, day_window.end - travel_poi_to_H) - visit_duration), "
+            "and whether it fits (earliest <= latest)."
+        )
+    )
+    infeasible_pois: List[str] = Field(
+        description=(
+            "POI ids whose time window makes them individually impossible to visit. "
+            "Empty list if every must-visit POI individually fits."
+        )
+    )
+    can_proceed: bool = Field(
+        description=(
+            "True if every must-visit POI individually fits in the day window. "
+            "False if any must-visit POI cannot be visited regardless of ordering."
+        )
+    )
+
+LTM_STEP1_INSTRUCTION = """You are a feasibility analyser for the Tourist Trip Design Problem (TTDP).
+
+Your only task is to check each must-visit POI in isolation — do not try to build an itinerary yet.
+
+For each must-visit POI compute:
+  earliest_start = max(open, day_window.start + travel_times[H][poi])
+  latest_start   = min(close, day_window.end - travel_times[poi][H]) - visit_duration
+
+A POI fits iff earliest_start <= latest_start.
+If any must-visit POI does not fit, the whole instance is infeasible regardless of ordering.
+
+Show the arithmetic for every must-visit POI. List any infeasible POIs by id.
+"""
+
+def _ltm_step2_prompt(instance: dict, analysis: FeasibilityAnalysis) -> str:
+    pre = "\n".join(f"  {c}" for c in analysis.poi_checks)
+    return (
+        "PRE-ANALYSIS — individual feasibility already verified:\n"
+        + pre
+        + "\n\nAll must-visit POIs individually fit. "
+        "Now find a valid ordering and assign exact start times satisfying all four constraints (C1–C4).\n\n"
+        + json.dumps(instance, indent=2)
+    )
+
+def solve_ltm(instance: dict) -> dict:
+    """Safeguard 6 — Least-to-Most Prompting (Zhou et al., 2023).
+    Decomposes TTDP into two sequential subproblems:
+      Step 1 — individual feasibility: check each must-visit POI in isolation.
+      Step 2 — full solve: given the Step 1 analysis, find a valid ordering with exact times.
+    Step 1 eliminates the C1/C3 blind spots before ordering is attempted.
+    """
+    # Step 1: individual feasibility pre-check
+    step1 = client.interactions.create(
+        model=MODEL,
+        system_instruction=LTM_STEP1_INSTRUCTION,
+        input="Analyse this TTDP instance.\n\n" + json.dumps(instance, indent=2),
+        response_format={
+            "type": "text",
+            "mime_type": "application/json",
+            "schema": FeasibilityAnalysis.model_json_schema(),
+        },
+    )
+    analysis = FeasibilityAnalysis.model_validate_json(step1.output_text)
+    _debug("\n[ltm] step 1 — poi_checks:")
+    for c in analysis.poi_checks:
+        _debug(f"  {c}")
+    _debug(f"[ltm] infeasible_pois: {analysis.infeasible_pois}")
+    _debug(f"[ltm] can_proceed: {analysis.can_proceed}")
+
+    if not analysis.can_proceed:
+        reason = (
+            f"Must-visit POI(s) {analysis.infeasible_pois} cannot fit in the day window "
+            "regardless of ordering."
+        )
+        _debug(f"[ltm] early exit — {reason}")
+        return TTDPOutput(
+            feasible=False,
+            itinerary=[],
+            return_mode="walk",
+            reason=reason,
+        ).model_dump()
+
+    # Step 2: full solve with pre-analysis as context, using CoT for the final schedule
+    step2 = client.interactions.create(
+        model=MODEL,
+        system_instruction=SYSTEM_INSTRUCTION,
+        input=_ltm_step2_prompt(instance, analysis),
+        response_format={
+            "type": "text",
+            "mime_type": "application/json",
+            "schema": TTDPOutputCoT.model_json_schema(),
+        },
+    )
+    raw = TTDPOutputCoT.model_validate_json(step2.output_text)
+    _debug(f"\n[ltm] step 2 — feasible: {raw.feasible}")
+    _debug(f"[ltm] itinerary: {[s.poi for s in raw.itinerary]}")
+    _debug(f"[ltm] reasoning:\n{raw.reasoning}")
+
+    return TTDPOutput(
+        feasible=raw.feasible,
+        itinerary=raw.itinerary,
+        return_mode=raw.return_mode,
+        reason=raw.reason,
+    ).model_dump()
+
 
 # Combined: CoT + Verifier-in-the-loop
 
