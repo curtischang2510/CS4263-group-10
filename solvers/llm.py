@@ -12,7 +12,9 @@ Usage (run all tests via the test runner):
     python run_tests.py llm_self_consistency  # safeguard 4: Self-consistency (5x API calls)
     python run_tests.py llm_reflexion         # safeguard 5: Reflexion
     python run_tests.py llm_ltm               # safeguard 6: Least-to-Most
-    python run_tests.py llm llm_cot llm_self_refine llm_verifier_loop llm_self_consistency llm_reflexion llm_ltm  # all
+    python run_tests.py llm_combined_1        # combined 1: CoT + Verifier-in-the-Loop + Self-Consistency
+    python run_tests.py llm_combined_2        # combined 2: LtM + Reflexion + Self-Consistency
+    python run_tests.py llm llm_cot llm_self_refine llm_verifier_loop llm_self_consistency llm_reflexion llm_ltm llm_combined_1 llm_combined_2  # all
 
 """
 
@@ -703,58 +705,167 @@ def solve_ltm(instance: dict) -> dict:
     ).model_dump()
 
 
-# Combined: CoT + Verifier-in-the-loop
+# Combined 1: CoT + Verifier-in-the-Loop + Self-Consistency
 
-def solve_combined(instance: dict) -> dict:
-    """Combined safeguards: CoT + Verifier-in-the-loop.
-    Generates a CoT plan, then runs verifier-in-the-loop correction.
+def solve_combined_1(instance: dict) -> dict:
+    """Combined 1: CoT + Verifier-in-the-Loop + Self-Consistency.
+    Runs K independent CoT samples; each is corrected by the deterministic verifier
+    loop before majority vote selects the final answer.
     """
-    interaction = client.interactions.create(
-        model=MODEL,
+    sc_config = types.GenerateContentConfig(
         system_instruction=SYSTEM_INSTRUCTION,
-        input=_prompt(instance),
-        response_format={
-            "type": "text",
-            "mime_type": "application/json",
-            "schema": TTDPOutputCoT.model_json_schema(),
-        },
-    )
-    raw = TTDPOutputCoT.model_validate_json(interaction.output_text)
-    _debug(f"\n[combined] CoT — feasible: {raw.feasible}, itinerary: {[s.poi for s in raw.itinerary]}")
-    _debug(f"[combined] reasoning:\n{raw.reasoning}")
-
-    result = TTDPOutput(
-        feasible=raw.feasible,
-        itinerary=raw.itinerary,
-        return_mode=raw.return_mode,
-        reason=raw.reason,
+        temperature=SC_TEMPERATURE,
+        response_mime_type="application/json",
+        response_schema=TTDPOutputCoT,
     )
 
-    if not result.feasible:
-        return result.model_dump()
-
-    history = []
-    for attempt in range(MAX_ATTEMPTS):
-        violations = T.check(instance, result.model_dump())
-        _debug(f"[combined] attempt {attempt + 1} violations: {violations}")
-        if not violations:
-            return result.model_dump()
-
-        history.append({"plan": result.model_dump(), "violations": violations})
-        retry = client.interactions.create(
+    plans = []
+    for i in range(K_SAMPLES):
+        # Generate CoT plan at temperature for diversity
+        response = client.models.generate_content(
             model=MODEL,
-            system_instruction=SYSTEM_INSTRUCTION,
-            input=_retry_prompt(instance, history),
+            contents=_prompt(instance),
+            config=sc_config,
+        )
+        raw = TTDPOutputCoT.model_validate_json(response.text)
+        _debug(f"\n[combined_1] sample {i + 1} — feasible: {raw.feasible}, itinerary: {[s.poi for s in raw.itinerary]}")
+
+        result = TTDPOutput(
+            feasible=raw.feasible,
+            itinerary=raw.itinerary,
+            return_mode=raw.return_mode,
+            reason=raw.reason,
+        )
+
+        # Run verifier loop on each sample
+        if result.feasible:
+            history = []
+            for attempt in range(MAX_ATTEMPTS):
+                violations = T.check(instance, result.model_dump())
+                _debug(f"[combined_1] sample {i + 1} attempt {attempt + 1} violations: {violations}")
+                if not violations:
+                    break
+                history.append({"plan": result.model_dump(), "violations": violations})
+                retry = client.interactions.create(
+                    model=MODEL,
+                    system_instruction=SYSTEM_INSTRUCTION,
+                    input=_retry_prompt(instance, history),
+                    response_format={
+                        "type": "text",
+                        "mime_type": "application/json",
+                        "schema": TTDPOutput.model_json_schema(),
+                    },
+                )
+                result = TTDPOutput.model_validate_json(retry.output_text)
+                if not result.feasible:
+                    break
+
+        plans.append(result.model_dump())
+
+    selected = _majority_plan(plans, instance)
+    _debug(f"\n[combined_1] selected — feasible: {selected['feasible']}, itinerary: {[s['poi'] for s in selected['itinerary']]}")
+    return selected
+
+
+# Combined 2: LtM + Reflexion + Self-Consistency
+
+def solve_combined_2(instance: dict) -> dict:
+    """Combined 2: LtM + Reflexion + Self-Consistency.
+    Runs K independent samples; each uses LtM decomposition for planning and
+    Reflexion for correction, then majority vote selects the final answer.
+    """
+    sc_config = types.GenerateContentConfig(
+        system_instruction=SYSTEM_INSTRUCTION,
+        temperature=SC_TEMPERATURE,
+        response_mime_type="application/json",
+        response_schema=TTDPOutputCoT,
+    )
+
+    plans = []
+    for i in range(K_SAMPLES):
+        _debug(f"\n[combined_2] sample {i + 1}")
+
+        # LtM Step 1: individual feasibility pre-check
+        step1 = client.interactions.create(
+            model=MODEL,
+            system_instruction=LTM_STEP1_INSTRUCTION,
+            input="Analyse this TTDP instance.\n\n" + json.dumps(instance, indent=2),
             response_format={
                 "type": "text",
                 "mime_type": "application/json",
-                "schema": TTDPOutput.model_json_schema(),
+                "schema": FeasibilityAnalysis.model_json_schema(),
             },
         )
-        result = TTDPOutput.model_validate_json(retry.output_text)
-        _debug(f"[combined] after retry — feasible: {result.feasible}, itinerary: {[s.poi for s in result.itinerary]}")
-        if not result.feasible:
-            return result.model_dump()
+        analysis = FeasibilityAnalysis.model_validate_json(step1.output_text)
+        _debug(f"[combined_2] sample {i + 1} step 1 — can_proceed: {analysis.can_proceed}, infeasible: {analysis.infeasible_pois}")
 
-    _debug("[combined] max attempts reached, returning last plan")
-    return result.model_dump()
+        if not analysis.can_proceed:
+            plans.append(TTDPOutput(
+                feasible=False,
+                itinerary=[],
+                return_mode="walk",
+                reason=f"Must-visit POI(s) {analysis.infeasible_pois} cannot fit in the day window regardless of ordering.",
+            ).model_dump())
+            continue
+
+        # LtM Step 2: full solve with pre-analysis, CoT at temperature for diversity
+        response = client.models.generate_content(
+            model=MODEL,
+            contents=_ltm_step2_prompt(instance, analysis),
+            config=sc_config,
+        )
+        raw = TTDPOutputCoT.model_validate_json(response.text)
+        result = TTDPOutput(
+            feasible=raw.feasible,
+            itinerary=raw.itinerary,
+            return_mode=raw.return_mode,
+            reason=raw.reason,
+        )
+        _debug(f"[combined_2] sample {i + 1} step 2 — feasible: {result.feasible}, itinerary: {[s.poi for s in result.itinerary]}")
+
+        # Reflexion correction loop
+        if result.feasible:
+            reflections: List[str] = []
+            for attempt in range(MAX_ATTEMPTS):
+                violations = T.check(instance, result.model_dump())
+                _debug(f"[combined_2] sample {i + 1} reflexion attempt {attempt + 1} violations: {violations}")
+                if not violations:
+                    break
+                reflect_interaction = client.interactions.create(
+                    model=MODEL,
+                    system_instruction=REFLECT_SYSTEM_INSTRUCTION,
+                    input=_reflect_prompt(instance, result.model_dump(), violations),
+                    response_format={
+                        "type": "text",
+                        "mime_type": "application/json",
+                        "schema": ReflectionResult.model_json_schema(),
+                    },
+                )
+                reflection = ReflectionResult.model_validate_json(reflect_interaction.output_text)
+                _debug(f"[combined_2] reflection: {reflection.reflection}")
+                reflections.append(reflection.reflection)
+                retry = client.interactions.create(
+                    model=MODEL,
+                    system_instruction=SYSTEM_INSTRUCTION,
+                    input=_reflexion_retry_prompt(instance, reflections),
+                    response_format={
+                        "type": "text",
+                        "mime_type": "application/json",
+                        "schema": TTDPOutputCoT.model_json_schema(),
+                    },
+                )
+                raw = TTDPOutputCoT.model_validate_json(retry.output_text)
+                result = TTDPOutput(
+                    feasible=raw.feasible,
+                    itinerary=raw.itinerary,
+                    return_mode=raw.return_mode,
+                    reason=raw.reason,
+                )
+                if not result.feasible:
+                    break
+
+        plans.append(result.model_dump())
+
+    selected = _majority_plan(plans, instance)
+    _debug(f"\n[combined_2] selected — feasible: {selected['feasible']}, itinerary: {[s['poi'] for s in selected['itinerary']]}")
+    return selected

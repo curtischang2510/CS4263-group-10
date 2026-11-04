@@ -4,8 +4,7 @@ We compare two planners for a one-day tourist itinerary, given the same
 deterministic input:
 
 - **Solution A:** a CSP solver (MRV, degree and LCV heuristics with AC-3).
-- **Solution B:** an LLM planner, tested with safeguards added one at a time
-  (chain-of-thought, self-refine, verifier-in-the-loop, self-consistency).
+- **Solution B:** an LLM planner (`gemini-3.5-flash-lite`), tested with six safeguards added one at a time.
 
 ## Problem
 
@@ -49,6 +48,20 @@ If no plan satisfies all six rules, return
 
 **Correct output:** an itinerary the checker accepts on a feasible instance,
 or `"feasible": false` on an infeasible one. Anything else is wrong.
+
+## Solution B safeguards
+
+| Solver | Safeguard | Description |
+|---|---|---|
+| `llm` | Baseline | Single-pass structured output, no reasoning elicited. |
+| `llm_cot` | Chain-of-Thought (Wei et al., 2022) | Adds a `reasoning` field placed first in the schema, forcing the model to reason step-by-step before committing to an answer. |
+| `llm_ltm` | Least-to-Most (Zhou et al., 2023) | Two sequential calls: (1) check each must-visit POI's individual feasibility in isolation; (2) find a valid ordering given the pre-analysis. Prevents the model from skipping unary constraint checks. |
+| `llm_self_refine` | Iterative Refinement (Madaan et al., 2023) | A second LLM call critiques each plan and returns actionable violation feedback; the planner retries up to `MAX_ATTEMPTS` times. |
+| `llm_verifier_loop` | Verifier-in-the-Loop (Gou et al., 2024) | Replaces the LLM critic with the deterministic `ttdp_tool.check()`, guaranteeing correct feedback. Retries up to `MAX_ATTEMPTS` times. |
+| `llm_reflexion` | Reflexion (Shinn et al., 2023) | After each `T.check()` failure, a reflection call asks the model to diagnose its reasoning error. Reflections accumulate as episodic memory prepended to each subsequent attempt. |
+| `llm_self_consistency` | Self-Consistency (Wang et al., 2023) | Samples `K=5` CoT plans at temperature 0.7 and selects by majority vote over POI sequence, preferring plans that pass `T.check()`. |
+| `llm_combined_1` | Combined 1 | CoT + Verifier-in-the-Loop + Self-Consistency: K independent CoT samples each corrected by the deterministic verifier, then majority vote. |
+| `llm_combined_2` | Combined 2 | LtM + Reflexion + Self-Consistency: K independent samples using LtM decomposition and Reflexion correction, then majority vote. |
 
 ## Test cases
 
