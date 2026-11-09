@@ -101,7 +101,7 @@ inequality **including the visit duration**:
 - Travel time is enforced between every ordered pair of stops, not only between
   consecutive ones.
 
-Its unit tests cover the 10 test cases, boundary edge cases, and 300 random instances
+Its unit tests cover the 14 test cases, boundary edge cases, and 300 random instances
 cross-checked against the exhaustive search in `ttdp_tool.py`:
 
 ```bash
