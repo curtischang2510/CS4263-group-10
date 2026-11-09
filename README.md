@@ -49,20 +49,6 @@ If no plan satisfies all six rules, return
 **Correct output:** an itinerary the checker accepts on a feasible instance,
 or `"feasible": false` on an infeasible one. Anything else is wrong.
 
-## Solution B safeguards
-
-| Solver | Safeguard | Description |
-|---|---|---|
-| `llm` | Baseline | Single-pass structured output, no reasoning elicited. |
-| `llm_cot` | Chain-of-Thought (Wei et al., 2022) | Adds a `reasoning` field placed first in the schema, forcing the model to reason step-by-step before committing to an answer. |
-| `llm_ltm` | Least-to-Most (Zhou et al., 2023) | Two sequential calls: (1) check each must-visit POI's individual feasibility in isolation; (2) find a valid ordering given the pre-analysis. Prevents the model from skipping unary constraint checks. |
-| `llm_self_refine` | Iterative Refinement (Madaan et al., 2023) | A second LLM call critiques each plan and returns actionable violation feedback; the planner retries up to `MAX_ATTEMPTS` times. |
-| `llm_verifier_loop` | Verifier-in-the-Loop (Gou et al., 2024) | Replaces the LLM critic with the deterministic `ttdp_tool.check()`, guaranteeing correct feedback. Retries up to `MAX_ATTEMPTS` times. |
-| `llm_reflexion` | Reflexion (Shinn et al., 2023) | After each `T.check()` failure, a reflection call asks the model to diagnose its reasoning error. Reflections accumulate as episodic memory prepended to each subsequent attempt. |
-| `llm_self_consistency` | Self-Consistency (Wang et al., 2023) | Samples `K=5` CoT plans at temperature 0.7 and selects by majority vote over POI sequence, preferring plans that pass `T.check()`. |
-| `llm_combined_1` | Combined 1 | CoT + Verifier-in-the-Loop + Self-Consistency: K independent CoT samples each corrected by the deterministic verifier, then majority vote. |
-| `llm_combined_2` | Combined 2 | LtM + Reflexion + Self-Consistency: K independent samples using LtM decomposition and Reflexion correction, then majority vote. |
-
 ## Test cases
 
 `testcases/testcase_N/` holds `testcase_N`, a feasible instance, and
@@ -122,29 +108,39 @@ cross-checked against the exhaustive search in `ttdp_tool.py`:
 python3 -m unittest discover tests -v
 ```
 
-## Testing your solver
+## Solution B: LLM planner and safeguards
 
-The solvers are stubs in `solvers/`:
+`solvers/llm.py` implements all Solution B variants. The baseline calls
+`gemini-3.5-flash-lite` with a structured-output schema and no reasoning
+elicitation. Each safeguard builds on top of it.
 
-- `csp.py` is Solution A.
-- `llm.py` is Solution B.
+### Safeguards
 
-To implement one, fill in its `solve(instance)`. It takes the parsed instance
-(a dict) and returns a dict in the format of
-[`testcases/example_output.json`](testcases/example_output.json). To test more
-solvers, such as one per safeguard, add them to `SOLVERS` in
-`solvers/__init__.py`.
+| Solver | Safeguard | Description |
+|---|---|---|
+| `llm` | Baseline | Single-pass structured output, no reasoning elicited. |
+| `llm_cot` | Chain-of-Thought (Wei et al., 2022) | Adds a `reasoning` field placed first in the schema, forcing the model to reason step-by-step before committing to an answer. |
+| `llm_ltm` | Least-to-Most (Zhou et al., 2023) | Two sequential calls: (1) check each must-visit POI's individual feasibility in isolation; (2) find a valid ordering given the pre-analysis. Prevents the model from skipping unary constraint checks. *Excluded from the report as it did not improve results over CoT prompting.* |
+| `llm_self_refine` | Iterative Refinement (Madaan et al., 2023) | A second LLM call critiques each plan and returns actionable violation feedback; the planner retries up to `MAX_ATTEMPTS` times. |
+| `llm_verifier_loop` | Verifier-in-the-Loop (Gou et al., 2024) | Replaces the LLM critic with the deterministic `ttdp_tool.check()`, guaranteeing correct feedback. Retries up to `MAX_ATTEMPTS` times. |
+| `llm_reflexion` | Reflexion (Shinn et al., 2023) | After each `T.check()` failure, a reflection call asks the model to diagnose its reasoning error. Reflections accumulate as episodic memory prepended to each subsequent attempt. |
+| `llm_self_consistency` | Self-Consistency (Wang et al., 2023) | Samples `K=5` CoT plans at temperature 0.7 and selects by majority vote over POI sequence, preferring plans that pass `T.check()`. |
 
-Then run:
+### Combined strategies
+
+| Solver | Combination | Description |
+|---|---|---|
+| `llm_combined_1` | CoT + Verifier + Self-Consistency | K independent CoT samples each corrected by the deterministic verifier, then majority vote. |
+| `llm_combined_2` | LtM + Reflexion + Self-Consistency | K independent samples using LtM decomposition and Reflexion correction, then majority vote. |
+| `llm_combined_3` | CoT + Verifier + Reflexion + Self-Consistency | K independent CoT samples each corrected by a Reflexion loop (deterministic `T.check()` + verbal self-reflection), then majority vote. |
+
+### Running the solvers
 
 ```bash
-python run_tests.py
+python run_tests.py                # all implemented solvers
+python run_tests.py llm            # one solver
+python run_tests.py llm llm_cot    # specific solvers
 ```
-
-The runner runs every implemented solver on every test case, easy first, and
-stops at the first failure with the reason. Solvers that are still stubs are
-skipped. To run one solver only, name it, for example
-`python run_tests.py llm`. On a Mac without `python`, use `python3`.
 
 To check one output:
 

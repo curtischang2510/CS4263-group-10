@@ -109,7 +109,7 @@ ARITHMETIC RULES:
 """
 
 MODEL = "gemini-3.5-flash-lite"
-os.environ["GEMINI_API_KEY"] = "AQ.Ab8RN6KwZ2vkhEAU2cvTXrgp0lO3NHHUyEI71AsbMuTGba2fbg" # INSERT API KEY HERE
+os.environ["GEMINI_API_KEY"] = "AQ.Ab8RN6KqbKC_Upm8y1A7cNXPAK1a-Ic_eywbrqMOn-mcfK13-Q" # INSERT API KEY HERE
 client = genai.Client()
 
 DEBUG = True  # Set to True to print LLM reasoning and intermediate steps
@@ -412,7 +412,7 @@ def solve_verifier_loop(instance: dict) -> dict:
 
 # Safeguard 4: Self-consistency
 
-K_SAMPLES = 3
+K_SAMPLES = 5
 SC_TEMPERATURE = 0.7  # > 0 to produce diverse reasoning paths across samples
 
 def _poi_sequence(plan: dict) -> tuple:
@@ -747,7 +747,7 @@ def solve_combined_1(instance: dict) -> dict:
                     break
                 history.append({"plan": result.model_dump(), "violations": violations})
                 retry = client.interactions.create(
-                    model=MODEL,
+                    model=MODEL, 
                     system_instruction=SYSTEM_INSTRUCTION,
                     input=_retry_prompt(instance, history),
                     response_format={
@@ -764,6 +764,88 @@ def solve_combined_1(instance: dict) -> dict:
 
     selected = _majority_plan(plans, instance)
     _debug(f"\n[combined_1] selected — feasible: {selected['feasible']}, itinerary: {[s['poi'] for s in selected['itinerary']]}")
+    return selected
+
+
+# Combined 3: CoT + Verifier-in-the-Loop + Reflexion + Self-Consistency
+
+def solve_combined_3(instance: dict) -> dict:
+    """Combined 3: CoT + Verifier-in-the-Loop + Reflexion + Self-Consistency.
+    Runs K independent CoT samples; each is corrected by a Reflexion loop
+    (deterministic T.check() + verbal self-reflection) before majority vote.
+    """
+    sc_config = types.GenerateContentConfig(
+        system_instruction=SYSTEM_INSTRUCTION,
+        temperature=SC_TEMPERATURE,
+        response_mime_type="application/json",
+        response_schema=TTDPOutputCoT,
+    )
+
+    plans = []
+    for i in range(K_SAMPLES):
+        # Generate CoT plan at temperature for diversity
+        response = client.models.generate_content(
+            model=MODEL,
+            contents=_prompt(instance),
+            config=sc_config,
+        )
+        raw = TTDPOutputCoT.model_validate_json(response.text)
+        _debug(f"\n[combined_3] sample {i + 1} — feasible: {raw.feasible}, itinerary: {[s.poi for s in raw.itinerary]}")
+
+        result = TTDPOutput(
+            feasible=raw.feasible,
+            itinerary=raw.itinerary,
+            return_mode=raw.return_mode,
+            reason=raw.reason,
+        )
+
+        # Reflexion correction loop (T.check() + self-reflection + retry)
+        if result.feasible:
+            reflections: List[str] = []
+            for attempt in range(MAX_ATTEMPTS):
+                violations = T.check(instance, result.model_dump())
+                _debug(f"[combined_3] sample {i + 1} attempt {attempt + 1} violations: {violations}")
+                if not violations:
+                    break
+                # Generate verbal reflection on the failure
+                reflect_interaction = client.interactions.create(
+                    model=MODEL,
+                    system_instruction=REFLECT_SYSTEM_INSTRUCTION,
+                    input=_reflect_prompt(instance, result.model_dump(), violations),
+                    response_format={
+                        "type": "text",
+                        "mime_type": "application/json",
+                        "schema": ReflectionResult.model_json_schema(),
+                    },
+                )
+                reflection = ReflectionResult.model_validate_json(reflect_interaction.output_text)
+                _debug(f"[combined_3] reflection: {reflection.reflection}")
+                reflections.append(reflection.reflection)
+                # Retry with accumulated reflections
+                retry = client.interactions.create(
+                    model=MODEL,
+                    system_instruction=SYSTEM_INSTRUCTION,
+                    input=_reflexion_retry_prompt(instance, reflections),
+                    response_format={
+                        "type": "text",
+                        "mime_type": "application/json",
+                        "schema": TTDPOutputCoT.model_json_schema(),
+                    },
+                )
+                raw = TTDPOutputCoT.model_validate_json(retry.output_text)
+                result = TTDPOutput(
+                    feasible=raw.feasible,
+                    itinerary=raw.itinerary,
+                    return_mode=raw.return_mode,
+                    reason=raw.reason,
+                )
+                if not result.feasible:
+                    break
+
+        plans.append(result.model_dump())
+
+    selected = _majority_plan(plans, instance)
+    _debug(f"\n[combined_3] selected — feasible: {selected['feasible']}, itinerary: {[s['poi'] for s in selected['itinerary']]}")
     return selected
 
 
