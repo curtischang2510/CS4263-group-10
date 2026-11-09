@@ -110,7 +110,7 @@ ARITHMETIC RULES:
 """
 
 MODEL = "gemini-3.5-flash-lite"
-os.environ["GEMINI_API_KEY"] = "AQ.Ab8RN6KqbKC_Upm8y1A7cNXPAK1a-Ic_eywbrqMOn-mcfK13-Q" # INSERT API KEY HERE
+os.environ["GEMINI_API_KEY"] = "" # INSERT API KEY HERE
 client = genai.Client()
 
 DEBUG = True  # Set to True to print LLM reasoning and intermediate steps
